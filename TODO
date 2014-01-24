@@ -1,0 +1,27 @@
+Find the files in a directory when using SIGUSR1, calculate crc32, md5, sha256, save them in a cache:
+dir -- cache.lock
+    \- cache/
+          \-- filename1
+           \- filename2
+Store in the cache previos info (plaintext)
+
+commands:
+idcc info packn: send info from the cached file
+idcc send packn: send the file
+idcc send -1: send a list of all the file as plaintext file
+idcc list: like previous but as a tox private message (optional)
+idcc remove packn: ?stop the transfer from server side?
+
+
+Pack Info for Pack #1:
+ Filename       filename1
+ Description    filename1
+ Filesize       240286460 [229MB]
+ Last Modified  2009-08-15-00:47:41
+ Gets           255
+ sha256sum      0deac761bdeb1b693b11bb8d71d726addf89ba05edf7f160653329d98739bfc9
+ md5sum         24377220300a0a84319e248b97201afe
+ crc32          980FD9B4
+
+
+Keep number of downloads in memory and write them down when closing?
