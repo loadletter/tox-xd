@@ -21,7 +21,7 @@
 
 /*----------------------------------------------------------------------------*\
  *  NAME:
- *     compute_crc32 () - computes the CRC-32 value of a memory buffer
+ *     crc32_compute() - computes the CRC-32 value of a memory buffer
  *  DESCRIPTION:
  *     Computes or accumulates the CRC-32 value for a memory buffer.
  *     The 'in_crc32' gives a previously accumulated CRC-32 value to allow
@@ -36,8 +36,10 @@
  *  ERRORS:
  *     (no errors are possible)
 \*----------------------------------------------------------------------------*/
+#include <stdint.h>
+#include <sys/types.h>
 
-uint32_t compute_crc32 (uint32_t in_crc32, const void *buf, size_t buf_len)
+uint32_t crc32_compute(uint32_t in_crc32, const void *buf, size_t buf_len)
 {
 	static const uint32_t crc_table[256] = {
 	0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
