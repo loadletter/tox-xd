@@ -70,7 +70,7 @@ main (void)
 */
 
 /* test checksumcalc 
- * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall
+ * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3
 int main()
 {
 	FileInfo test;
