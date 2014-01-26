@@ -1,5 +1,8 @@
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <stdio.h>
+#include <time.h>
 #include "fileop.h"
 #include "crypto/crc32.h"
 #include "crypto/md5.h"
@@ -19,6 +22,7 @@ int file_checksumcalc(FileInfo *dest, char *filename)
 	
 	if(!(f = fopen(filename, "rb")))
 	{
+		perror("fopen");
 		return(1);
 	}
 	
@@ -40,6 +44,18 @@ int file_checksumcalc(FileInfo *dest, char *filename)
 	sha256_finish(&sha_ctx, dest->sha256);
 	
 	return(0);
+}
+
+time_t file_lastmod(char *filename)
+{
+	struct stat s;
+	if(stat(filename, &s) != 0)
+	{
+		perror("stat");
+		return -1;
+	}
+	
+	return s.st_mtime;
 }
 
 /* list dir in posix os
@@ -77,7 +93,7 @@ int main()
 	int rc, i;
 	
 	rc = file_checksumcalc(&test, "./fileop.c");
-	printf("%i - %ull\n", rc, test.size);
+	printf("%i - %ull - %ld\n", rc, test.size, file_lastmod("./fileop.c"));
 	printf("crc32: %.2X\nmd5: ", test.crc32);
 	for(i=0;i<16;i++)
 		printf("%.2X", test.md5[i]);

@@ -9,4 +9,6 @@ typedef struct FileInfo {
 	uint8_t sha256[32];
 } FileInfo;
 
+int file_checksumcalc(FileInfo *dest, char *filename);
+time_t file_lastmod(char *filename);
 #endif
