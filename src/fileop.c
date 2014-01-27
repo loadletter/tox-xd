@@ -3,12 +3,14 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <time.h>
+#include <ftw.h>
 #include "fileop.h"
 #include "crypto/crc32.h"
 #include "crypto/md5.h"
 #include "crypto/sha256.h"
 
 #define HASHING_BUFSIZE 64 * 1024
+#define SHRDIR_MAX_DESCRIPTORS 6
 
 int file_checksumcalc_noblock(FileInfo *dest, char *filename)
 {
@@ -111,99 +113,34 @@ time_t file_lastmod(char *filename)
 	return s.st_mtime;
 }
 
-
-/*
-#define SHRDIR_RECUR = TRUE;
-#define SHRDIR_DOTFILES = FALSE;
-#define SHRDIR_FLWSYMLINK = FALSE;
-
-enum {
-	WALK_OK = 0,
-	WALK_BADPATTERN,
-	WALK_NAMETOOLONG,
-	WALK_BADIO,
-};
-
-int walk_recur(char *dname)
+int file_walk_shared(char *shrdir)
 {
-	struct dirent *dent;
-	DIR *dir;
-	struct stat st;
-	char fn[FILENAME_MAX];
-	int res = WALK_OK;
-	int len = strlen(dname);
-	if (len >= FILENAME_MAX - 1)
-		return WALK_NAMETOOLONG;
- 
-	strcpy(fn, dname);
-	fn[len++] = '/';
- 
-	if (!(dir = opendir(dname))) {
-		warn("can't open %s", dname);
-		return WALK_BADIO;
-	}
- 
-	errno = 0;
-	while ((dent = readdir(dir))) {
-		if (!SHRDIR_DOTFILES && dent->d_name[0] == '.')
-			continue;
-		if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
-			continue;
- 
-		strncpy(fn + len, dent->d_name, FILENAME_MAX - len);
-		if (lstat(fn, &st) == -1) {
-			warn("Can't stat %s", fn);
-			res = WALK_BADIO;
-			continue;
-		}
- 
-		// don't follow symlink unless told so
-		if (!SHRDIR_FLWSYMLINK && S_ISLNK(st.st_mode))
-			continue;
- 
-		// will be false for symlinked dirs
-		if (S_ISDIR(st.st_mode)) {
-			// recursively follow dirs
-			if (SHRDIR_RECUR)
-				walk_recur(fn);
-			continue;
-		}
- 
-		// add code here for adding to the todo list
-		//puts(fn);
-	}
- 
-	if (dir) closedir(dir);
-	return res ? res : errno ? WALK_BADIO : WALK_OK;
-}
-*/
-
-/* list dir in posix os
-#include <stdio.h>
-#include <sys/types.h>
-#include <dirent.h>
-
-int
-main (void)
-{
-	DIR *dp;
-	struct dirent *ep;
-
-	dp = opendir ("./");
-	if (dp != NULL)
-	 {
-	   while (ep = readdir (dp))
-		 puts (ep->d_name);
-	   (void) closedir (dp);
-	 }
-	else
-	 perror ("Couldn't open the directory");
+	char *abspath = NULL;
+	int rc;
 	
-	printf("%i\n", NAME_MAX);
+	abspath = realpath(shrdir, abspath);
+	rc = ftw(abspath, file_walk_callback, SHRDIR_MAX_DESCRIPTORS);
+	free(abspath);
+	
+	return rc; 
+}
 
+static int file_walk_callback(const char *path, const struct stat *sptr, int type)
+{
+	if (type == FTW_DNR)
+		printf(stderr, "Directory %s cannot be traversed.\n", path);
+	if (type == FTW_F)
+	{
+		/*TODO: this should compare the following data with the one 
+		 * in memory and check if it's missing or different, then add those
+		 * to a linked list that will be processed with checksumcalc_noblock
+		path (absolute)
+		sptr->st_mtime
+		sptr->st_size
+		* */
+	}
 	return 0;
 }
-*/
 
 /* test checksumcalc 
  * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3*/
