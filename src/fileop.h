@@ -10,5 +10,6 @@ typedef struct FileInfo {
 } FileInfo;
 
 int file_checksumcalc(FileInfo *dest, char *filename);
+int file_checksumcalc_noblock(FileInfo *dest, char *filename);
 time_t file_lastmod(char *filename);
 #endif
