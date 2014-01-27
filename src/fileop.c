@@ -43,6 +43,9 @@ int file_checksumcalc(FileInfo *dest, char *filename)
 	MD5_Final(dest->md5, &md5_ctx);
 	sha256_finish(&sha_ctx, dest->sha256);
 	
+	if(fclose(f) != 0)
+		perror("fclose");
+	
 	return(0);
 }
 
