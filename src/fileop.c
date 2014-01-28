@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <limits.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <ftw.h>
@@ -113,22 +115,10 @@ time_t file_lastmod(char *filename)
 	return s.st_mtime;
 }
 
-int file_walk_shared(char *shrdir)
-{
-	char *abspath = NULL;
-	int rc;
-	
-	abspath = realpath(shrdir, abspath);
-	rc = ftw(abspath, file_walk_callback, SHRDIR_MAX_DESCRIPTORS);
-	free(abspath);
-	
-	return rc; 
-}
-
 static int file_walk_callback(const char *path, const struct stat *sptr, int type)
 {
 	if (type == FTW_DNR)
-		printf(stderr, "Directory %s cannot be traversed.\n", path);
+		fprintf(stderr, "Directory %s cannot be traversed.\n", path);
 	if (type == FTW_F)
 	{
 		/*TODO: this should compare the following data with the one 
@@ -141,6 +131,19 @@ static int file_walk_callback(const char *path, const struct stat *sptr, int typ
 	}
 	return 0;
 }
+
+int file_walk_shared(char *shrdir)
+{
+	char *abspath = NULL;
+	int rc;
+	
+	abspath = realpath(shrdir, abspath);
+	rc = ftw(abspath, file_walk_callback, SHRDIR_MAX_DESCRIPTORS);
+	free(abspath);
+	
+	return rc; 
+}
+
 
 /* test checksumcalc 
  * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3*/
