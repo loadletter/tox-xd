@@ -1,5 +1,5 @@
-#ifndef CRC32_H
-#define CRC32_H
+#ifndef FILEOP_H
+#define FILEOP_H
 #include <stdint.h>
 
 typedef struct FileInfo {
