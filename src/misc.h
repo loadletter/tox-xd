@@ -142,4 +142,82 @@ static inline void tox_list_remove(tox_list *lst)
     lst->next->prev = lst->prev;
 }
 
+/****************************Array***************************
+ * Array which manages its own memory allocation.
+ * It stores copy of data (not pointers).
+ * TODO: Add wiki info usage.
+ ************************************************************/
+
+typedef struct tox_array {
+    uint8_t *data; /* last elem is data[len-1] */
+    uint32_t len;
+    size_t elem_size; /* in bytes */
+} tox_array;
+
+static inline void tox_array_init(tox_array *arr, size_t elem_size)
+{
+    arr->len = 0;
+    arr->elem_size = elem_size;
+    arr->data = NULL;
+}
+
+static inline void tox_array_delete(tox_array *arr)
+{
+    free(arr->data);
+    arr->len = arr->elem_size = 0;
+}
+
+static inline uint8_t tox_array_push_ptr(tox_array *arr, uint8_t *item)
+{
+    uint8_t *temp = realloc(arr->data, arr->elem_size * (arr->len + 1));
+
+    if (temp == NULL)
+        return 0;
+
+    arr->data = temp;
+
+    if (item != NULL)
+        memcpy(arr->data + arr->elem_size * arr->len, item, arr->elem_size);
+
+    arr->len++;
+
+    return 1;
+}
+#define tox_array_push(arr, item) tox_array_push_ptr(arr, (uint8_t*)(&(item)))
+
+/* Deletes num items from array.
+ * Not same as pop in stacks, because to access elements you use data.
+ */
+static inline void tox_array_pop(tox_array *arr, uint32_t num)
+{
+    if (num == 0)
+        return;
+
+    if (num > arr->len)
+        return;
+
+    if (arr->len == num) {
+        free(arr->data);
+        arr->data = NULL;
+        arr->len = 0;
+        return;
+    }
+
+    uint8_t *temp = realloc(arr->data, arr->elem_size * (arr->len - num));
+
+    if (temp == NULL)
+        return;
+
+    arr->len -= num;
+    arr->data = temp;
+}
+
+/* TODO: return ptr and do not take type */
+#define tox_array_get(arr, i, type) (((type*)(arr)->data)[i])
+
+
+#define tox_array_for_each(arr, type, tmp_name) \
+    type *tmp_name = &tox_array_get(arr, 0, type); uint32_t tmp_name ## _i = 0; \
+    for (; tmp_name ## _i < (arr)->len; tmp_name = &tox_array_get(arr, ++ tmp_name ## _i, type))
+
 #endif
