@@ -160,6 +160,53 @@ int file_walk_shared(char *shrdir)
 	
 	return rc; 
 }
+/* TODO: remove the first for and find a way to run checksumcalc_noblock
+int file_do(void)
+{
+	int i, t;
+	int n = -1;
+	int o = -1;
+
+	for(i=new_list_len;i!=0;i--)
+	{
+		n = -1;
+		o = -1;
+		for(t=0;t<shr_list_len;t++)
+		{
+			if(strcmp(new_list[i]->file, shr_list[t]->file) == 0)
+			{
+				n = i;
+				o = t;
+				break;
+			}
+		}
+		
+		if(n == -1)
+		{
+			shr_list = realloc(shr_list, sizeof(FileNode *) * (shr_list_len + 1));
+			if(shr_list == NULL)
+			{
+				perror("realloc");
+				return -1;
+			}
+			shr_list[shr_list_len] = new_list[n];
+			new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len - 1));
+			new_list_len--;
+		}
+		else
+		{
+			free(shr_list[t]->file);
+			free(shr_list[t]->info);
+			free(shr_list[t]);
+			shr_list[t] = new_list[n];
+			new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len - 1));
+			new_list_len--;
+		}
+		
+		
+	}
+
+}*/
 
 /* test checksumcalc 
  * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3*/
