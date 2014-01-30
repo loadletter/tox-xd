@@ -160,23 +160,22 @@ int file_walk_shared(char *shrdir)
 	
 	return rc; 
 }
-/* TODO: remove the first for and find a way to run checksumcalc_noblock
+
 int file_do(void)
 {
-	int i, t;
+	int i, t, rc;
 	int n = -1;
-	int o = -1;
-
-	for(i=new_list_len;i!=0;i--)
+	static int hashing = -1;
+	static int last;
+	
+	i = new_list_len;
+	if(new_list_len > 0 && hashing == -1)
 	{
-		n = -1;
-		o = -1;
 		for(t=0;t<shr_list_len;t++)
 		{
 			if(strcmp(new_list[i]->file, shr_list[t]->file) == 0)
 			{
 				n = i;
-				o = t;
 				break;
 			}
 		}
@@ -190,8 +189,8 @@ int file_do(void)
 				return -1;
 			}
 			shr_list[shr_list_len] = new_list[n];
-			new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len - 1));
-			new_list_len--;
+			last = shr_list_len;
+			shr_list_len++;
 		}
 		else
 		{
@@ -199,14 +198,43 @@ int file_do(void)
 			free(shr_list[t]->info);
 			free(shr_list[t]);
 			shr_list[t] = new_list[n];
-			new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len - 1));
-			new_list_len--;
+			last = t;
 		}
 		
+		new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len - 1));
+		new_list_len--;
+		if(new_list == NULL)
+		{
+			perror("realloc");
+			return -1;
+		}
 		
+		shr_list[last]->info = malloc(sizeof(FileHash));
+		if(shr_list[last]->info == NULL)
+		{
+			perror("malloc");
+			return -1;
+		}
+		
+		hashing = last;
 	}
 
-}*/
+	if(hashing >= 0)
+	{
+		rc = file_checksumcalc_noblock(shr_list[last]->info, shr_list[last]->file);
+		if(rc <= 0)
+		{
+			hashing = -1;
+		}
+		
+		if(rc < 0)
+			return -1;
+	}
+	
+	return 0;
+}
+
+/* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
 /* test checksumcalc 
  * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3*/
