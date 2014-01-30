@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <stdio.h>
 #include <time.h>
 #include <ftw.h>
@@ -19,6 +20,7 @@ FileNode **shr_list = NULL;
 uint shr_list_len = 0;
 FileNode **new_list = NULL;
 uint new_list_len = 0;
+volatile sig_atomic_t file_recheck = FALSE;
 
 int file_checksumcalc_noblock(FileHash *dest, char *filename)
 {
@@ -158,15 +160,30 @@ int file_walk_shared(char *shrdir)
 	rc = ftw(abspath, file_walk_callback, SHRDIR_MAX_DESCRIPTORS);
 	free(abspath);
 	
+	/* no new files found */
+	if(new_list_len == 0)
+		file_recheck = FALSE;
+	
 	return rc; 
 }
 
-int file_do(void)
+/* signal handler */
+void file_recheck_callback(int signo)
+{
+	file_recheck = TRUE;
+}
+
+int file_do(char *shrdir)
 {
 	int i, t, rc;
 	int n = -1;
 	static int hashing = -1;
 	static int last;
+	
+	if(file_recheck && new_list_len == 0 && hashing == -1)
+	{
+		file_walk_shared(shrdir);
+	}
 	
 	i = new_list_len;
 	if(new_list_len > 0 && hashing == -1)
@@ -225,6 +242,8 @@ int file_do(void)
 		if(rc <= 0)
 		{
 			hashing = -1;
+			if(new_list_len == 0)
+				file_recheck = FALSE;
 		}
 		
 		if(rc < 0)
