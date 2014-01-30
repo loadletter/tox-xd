@@ -150,12 +150,16 @@ int file_walk_shared(char *shrdir)
 	int rc;
 	
 	abspath = realpath(shrdir, abspath);
+	if(abspath == NULL)
+	{
+		perror("realpath");
+		return -1;
+	}
 	rc = ftw(abspath, file_walk_callback, SHRDIR_MAX_DESCRIPTORS);
 	free(abspath);
 	
 	return rc; 
 }
-
 
 /* test checksumcalc 
  * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3*/
