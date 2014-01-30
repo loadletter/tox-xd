@@ -20,12 +20,11 @@ uint shr_list_len = 0;
 FileNode **new_list = NULL;
 uint new_list_len = 0;
 
-int file_checksumcalc_noblock(FileInfo *dest, char *filename)
+int file_checksumcalc_noblock(FileHash *dest, char *filename)
 {
 	static FILE *f = NULL;
 	uint i;
 	int rc;
-	static uint fsize = 0;
 	uint8_t buf[HASHING_BUFSIZE];
 	static uint32_t crc32;
 	static MD5_CTX md5_ctx;
@@ -38,8 +37,6 @@ int file_checksumcalc_noblock(FileInfo *dest, char *filename)
 			perror("fopen");
 			return(-1);
 		}
-		
-		fsize = 0;
 		crc32 = 0;
 		MD5_Init(&md5_ctx);
 		sha256_starts(&sha_ctx);
@@ -47,7 +44,6 @@ int file_checksumcalc_noblock(FileInfo *dest, char *filename)
 	
 	if((i = fread(buf, 1, sizeof(buf), f)) > 0)
 	{
-		fsize += i;
 		crc32 = crc32_compute(crc32, buf, i);
 		MD5_Update(&md5_ctx, buf, i);
 		sha256_update(&sha_ctx, buf, i);
@@ -55,7 +51,6 @@ int file_checksumcalc_noblock(FileInfo *dest, char *filename)
 	}
 	else
 	{
-		dest->size = fsize;
 		dest->crc32 = crc32;
 		MD5_Final(dest->md5, &md5_ctx);
 		sha256_finish(&sha_ctx, dest->sha256);
@@ -71,10 +66,10 @@ int file_checksumcalc_noblock(FileInfo *dest, char *filename)
 	return(rc);
 }
 
-int file_checksumcalc(FileInfo *dest, char *filename)
+int file_checksumcalc(FileHash *dest, char *filename)
 {
 	FILE *f;
-	uint i = 0, fsize = 0;
+	uint i = 0;
 	uint8_t buf[HASHING_BUFSIZE];
 	uint32_t crc32;
 	MD5_CTX md5_ctx;
@@ -92,13 +87,11 @@ int file_checksumcalc(FileInfo *dest, char *filename)
 	
 	while((i = fread(buf, 1, sizeof(buf), f)) > 0)
 	{
-		fsize += i;
 		crc32 = crc32_compute(crc32, buf, i);
 		MD5_Update(&md5_ctx, buf, i);
 		sha256_update(&sha_ctx, buf, i);
 	}
 	
-	dest->size = fsize;
 	dest->crc32 = crc32;
 	MD5_Final(dest->md5, &md5_ctx);
 	sha256_finish(&sha_ctx, dest->sha256);
@@ -107,18 +100,6 @@ int file_checksumcalc(FileInfo *dest, char *filename)
 		perror("fclose");
 	
 	return(0);
-}
-
-time_t file_lastmod(char *filename)
-{
-	struct stat s;
-	if(stat(filename, &s) != 0)
-	{
-		perror("stat");
-		return -1;
-	}
-	
-	return s.st_mtime;
 }
 
 static int file_walk_callback(const char *path, const struct stat *sptr, int type)
@@ -179,11 +160,11 @@ int file_walk_shared(char *shrdir)
 /* test checksumcalc 
  * gcc crypto/sha256.c crypto/md5.c crypto/crc32.c fileop.c -o fileop -Wall -march=native -O3*/
 #if 0
-static void printhash(FileInfo fi, int rc)
+static void printhash(FileHash fi, int rc)
 {
 	int i;
 	putchar('\n');
-	printf("%i - %lu\n", rc, fi.size);
+	printf("%i\n", rc);
 	printf("crc32: %.2X\nmd5: ", fi.crc32);
 	for(i=0;i<16;i++)
 		printf("%.2X", fi.md5[i]);
@@ -206,11 +187,10 @@ static void printfnodes(int rc)
 
 int main()
 {
-	FileInfo test;
+	FileHash test;
 	int rc;
 	char testfile[] = "./fileop.c";
 	
-	printf("%ld\n", file_lastmod(testfile));
 	rc = file_checksumcalc(&test, testfile);
 	printhash(test, rc);
 		
