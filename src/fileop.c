@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <time.h>
 #include <ftw.h>
@@ -13,6 +14,11 @@
 
 #define HASHING_BUFSIZE 64 * 1024
 #define SHRDIR_MAX_DESCRIPTORS 6
+
+FileNode **shr_list = NULL;
+uint shr_list_len = 0;
+FileNode **new_list = NULL;
+uint new_list_len = 0;
 
 int file_checksumcalc_noblock(FileInfo *dest, char *filename)
 {
@@ -117,17 +123,42 @@ time_t file_lastmod(char *filename)
 
 static int file_walk_callback(const char *path, const struct stat *sptr, int type)
 {
+	int i, n = -1;
 	if (type == FTW_DNR)
 		fprintf(stderr, "Directory %s cannot be traversed.\n", path);
 	if (type == FTW_F)
 	{
-		/*TODO: this should compare the following data with the one 
-		 * in memory and check if it's missing or different, then add those
-		 * to a linked list that will be processed with checksumcalc_noblock
-		path (absolute)
-		sptr->st_mtime
-		sptr->st_size
-		* */
+		for(i=0;i<shr_list_len;i++)
+		{
+			if((strcmp(path, shr_list[i]->file) == 0) &&\
+			(sptr->st_mtime == shr_list[i]->mtime) &&\
+			(sptr->st_size == shr_list[i]->size))
+			{
+				n = i;
+				break;
+			}
+		}
+		
+		if(n == -1)
+		{
+			new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len + 1));
+			if(new_list == NULL)
+			{
+				perror("realloc");
+				return -1;
+			}
+			new_list[new_list_len] = malloc(sizeof(FileNode));
+			if(new_list[new_list_len] == NULL)
+			{
+				perror("malloc");
+				return -1;
+			}
+			new_list[new_list_len]->file = strdup(path);
+			new_list[new_list_len]->info = NULL;
+			new_list[new_list_len]->mtime = sptr->st_mtime;
+			new_list[new_list_len]->size = sptr->st_size;
+			new_list_len++;
+		}
 	}
 	return 0;
 }
@@ -162,6 +193,17 @@ static void printhash(FileInfo fi, int rc)
 	putchar('\n');
 }
 
+static void printfnodes(int rc)
+{
+	int i;
+	printf("%i\n", rc);
+	for(i=0;i<new_list_len;i++)
+	{
+		printf("%lu - %lu - %s\n", new_list[i]->size, new_list[i]->mtime, new_list[i]->file);
+	}
+	putchar('\n');
+}
+
 int main()
 {
 	FileInfo test;
@@ -172,10 +214,12 @@ int main()
 	rc = file_checksumcalc(&test, testfile);
 	printhash(test, rc);
 		
-	while((rc = file_checksumcalc_noblock(&test, testfile)) != 0);
+	while((rc = file_checksumcalc_noblock(&test, testfile)) > 0);
 		//printf("%i ", rc);
 	printhash(test, rc);
 	
+	rc = file_walk_shared("../");
+	printfnodes(rc);
 	return 0;
 }
 #endif

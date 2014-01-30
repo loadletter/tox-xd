@@ -10,11 +10,10 @@ typedef struct FileInfo {
 } FileInfo;
 
 typedef struct FileNode {
-   char *file;
-   FileInfo *info;
-   time_t mtime;
-   int packn;
-   tox_list tox_lst;
+	char *file;
+	FileInfo *info;
+	time_t mtime;
+	off_t size;
 } FileNode;
 
 int file_checksumcalc(FileInfo *dest, char *filename);
