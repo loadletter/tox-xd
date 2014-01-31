@@ -15,7 +15,6 @@ typedef struct FileNode {
 	off_t size;
 } FileNode;
 
-int file_checksumcalc(FileHash *dest, char *filename);
-int file_checksumcalc_noblock(FileHash *dest, char *filename);
-time_t file_lastmod(char *filename);
+void file_recheck_callback(int signo);
+int file_do(char *shrdir);
 #endif

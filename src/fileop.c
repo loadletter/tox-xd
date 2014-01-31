@@ -170,7 +170,8 @@ int file_walk_shared(char *shrdir)
 /* signal handler */
 void file_recheck_callback(int signo)
 {
-	file_recheck = TRUE;
+	if(signo == SIGUSR1)
+		file_recheck = TRUE;
 }
 
 int file_do(char *shrdir)
