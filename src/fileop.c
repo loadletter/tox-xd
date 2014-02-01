@@ -104,6 +104,9 @@ int file_checksumcalc(FileHash *dest, char *filename)
 	return(0);
 }
 
+/* Run on every file of the shared dir, if a file is not alredy in the shared array
+ *  or has different size/mtime the new_list array is enlarged and a new
+ *  fileinfo struct is allocated */
 static int file_walk_callback(const char *path, const struct stat *sptr, int type)
 {
 	int i, n = -1;
@@ -174,7 +177,19 @@ void file_recheck_callback(int signo)
 		file_recheck = TRUE;
 }
 
-int file_do(char *shrdir)
+/* If the recheck flag is set and there is no hashing operations running
+ * walks the directory.
+ * 
+ * If there are new files and nothing is currently hashing pick the latest
+ * file from the new_list and check if it's alredy in shr_list:
+ * - if totally new, reallocate the shared list to accomodate the new
+ * - if preexisting in shr_list, free the old and point it to the data of the new
+ * then shrink the new_list, removing the last element (frees it when it's empty),
+ * finally allocate a FileHash struct for the new element in shr_list and set a flag for hashing
+ * 
+ * If the hashing flag was set, take it's number and start the hashing,
+ * when the entire file has been read or an error occurs clear the hashing flag.*/
+ int file_do(char *shrdir)
 {
 	int i, t, rc;
 	int n = -1;
