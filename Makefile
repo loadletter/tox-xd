@@ -32,4 +32,4 @@ $(OBJDIR)/main.o: src/main.c $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o
 	$(CC) $(CFLAGS) $< -c -o $@
 	
 $(OBJDIR)/main: $(OBJDIR)/main.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
-	$(CC) $(LDFLAGS) $? -o $@
+	$(CC) $(LDLIBS) $? -o $@
