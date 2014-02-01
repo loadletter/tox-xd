@@ -260,6 +260,7 @@ int file_do(char *shrdir)
 
 		printf("%lu - %lu - %s\n", shr_list[last]->size, shr_list[last]->mtime, shr_list[last]->file);
 		printhash2(shr_list[last]->info);
+		printf("%i - %i - %i\n", shr_list_len, new_list_len, last);
 		putchar('\n');
 		
 		

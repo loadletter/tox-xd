@@ -14,8 +14,11 @@ int main(void)
 	
 	while(TRUE)
 	{
-		if(i == 100)
+		if(i == 200)
+		{
 			file_recheck_callback(SIGUSR1);
+			i = 0;
+		}
 		file_do("../");
 		usleep(20 * 1000);
 		i++;
