@@ -174,18 +174,6 @@ void file_recheck_callback(int signo)
 		file_recheck = TRUE;
 }
 
-static void printhash2(FileHash *fi)
-{
-	int i;
-	printf("crc32: %.2X\nmd5: ", fi->crc32);
-	for(i=0;i<16;i++)
-		printf("%.2X", fi->md5[i]);
-	printf("\nsha256: ");
-	for(i=0;i<32;i++)
-		printf("%.2X", fi->sha256[i]);
-	putchar('\n');
-}
-
 int file_do(char *shrdir)
 {
 	int i, t, rc;
@@ -198,7 +186,7 @@ int file_do(char *shrdir)
 		file_walk_shared(shrdir);
 	}
 	
-	i = new_list_len -1; //need to look into this
+	i = new_list_len - 1; /* Starts from last element */
 	if(new_list_len > 0 && hashing == -1)
 	{
 		for(t=0;t<shr_list_len;t++)
@@ -256,16 +244,8 @@ int file_do(char *shrdir)
 		{
 			hashing = -1;
 			if(new_list_len == 0)
-				file_recheck = FALSE;
-
-		printf("%lu - %lu - %s\n", shr_list[last]->size, shr_list[last]->mtime, shr_list[last]->file);
-		printhash2(shr_list[last]->info);
-		printf("%i - %i - %i\n", shr_list_len, new_list_len, last);
-		putchar('\n');
-		
-		
+				file_recheck = FALSE;		
 		}
-	
 		
 		if(rc < 0)
 			return -1;
