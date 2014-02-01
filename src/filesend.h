@@ -23,4 +23,12 @@ typedef struct {
     time_t timestamp;
 } FileSender;
 
+enum {
+	FILESEND_OK,
+	FILESEND_ERR_FULL,
+	FILESEND_ERR_SENDING,
+	FILESEND_ERR_FILEIO,
+	FILESEND_ERR
+};
+	
 #endif

@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <time.h>
+#include <tox/tox.h>
+
 #include "filesend.h"
 
 uint8_t file_senders_index;
@@ -10,12 +14,13 @@ void file_sender_close(int i)
 
     int j;
 
-    for (j = max_file_senders_index; j > 0; --j) {
+    for (j = file_senders_index; j > 0; --j)
+    {
         if (file_senders[j-1].active)
             break;
     }
 
-    max_file_senders_index = j;
+    file_senders_index = j;
 }
 
 /*
@@ -67,7 +72,7 @@ void do_file_senders(Tox *m)
                 }
 
                 tox_file_send_control(m, friendnum, 0, filenum, TOX_FILECONTROL_FINISHED, 0, 0);
-                close_file_sender(i);
+                file_sender_close(i);
                 break;
             }
         }
@@ -75,83 +80,70 @@ void do_file_senders(Tox *m)
 }
 */
 
-/*
-void cmd_sendfile(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
+/* cut absolute pathname to filename */
+char *gnu_basename(char *path)
 {
-    if (max_file_senders_index >= (MAX_FILES-1)) {
-        wprintw(window,"Please wait for some of your outgoing file transfers to complete.\n");
-        return;
+	char *base = strrchr(path, '/');
+	return base ? base+1 : path;
+}
+
+int file_send_new(int friendnum, FileNode *fileinfo, Tox *m)
+{
+    if (file_senders_index >= (FSEND_MAX_FILES - 1))
+    {
+        return FILESEND_ERR_FULL;
     }
 
-    if (argc < 1) {
-      wprintw(window, "Invalid syntax.\n");
-      return;
+
+    FILE *file_to_send = fopen(fileinfo->file, "r");
+    if (file_to_send == NULL)
+    {
+		perror("fopen");
+        return FILESEND_ERR_FILEIO;
     }
 
-    uint8_t *path = argv[1];
+    uint64_t filesize = (uint64_t) fileinfo->size;
+    char *filename = gnu_basename(fileinfo->file);
 
-    if (path[0] != '\"') {
-        wprintw(window, "File path must be enclosed in quotes.\n");
-        return;
-    }
-
-    path[strlen(++path)-1] = L'\0';
-    int path_len = strlen(path);
-
-    if (path_len > MAX_STR_SIZE) {
-        wprintw(window, "File path exceeds character limit.\n");
-        return;
-    }
-
-    FILE *file_to_send = fopen(path, "r");
-
-    if (file_to_send == NULL) {
-        wprintw(window, "File '%s' not found.\n", path);
-        return;
-    }
-
-    fseek(file_to_send, 0, SEEK_END);
-    uint64_t filesize = ftell(file_to_send);
-    fseek(file_to_send, 0, SEEK_SET);
-
-    int filenum = tox_new_file_sender(m, self->num, filesize, path, path_len + 1);
-
-    if (filenum == -1) {
-        wprintw(window, "Error sending file.\n");
-        return;
+    int filenum = tox_new_file_sender(m, friendnum, filesize, (uint8_t *) filename, strlen(filename));
+    if (filenum == -1)
+    {
+        return FILESEND_ERR_SENDING;
     }
 
     int i;
 
-    for (i = 0; i < MAX_FILES; ++i) {
-        if (!file_senders[i].active) {
-            memcpy(file_senders[i].pathname, path, path_len + 1);
-            file_senders[i].active = true;
-            file_senders[i].toxwin = self;
+    for (i = 0; i < FSEND_MAX_FILES; ++i)
+    {
+        if (!file_senders[i].active)
+        {
+            file_senders[i].details = fileinfo;
+            file_senders[i].active = TRUE;
             file_senders[i].file = file_to_send;
             file_senders[i].filenum = (uint8_t) filenum;
-            file_senders[i].friendnum = self->num;
-            file_senders[i].timestamp = (uint64_t) time(NULL);
+            file_senders[i].friendnum = friendnum;
+            file_senders[i].timestamp = time(NULL);
             file_senders[i].piecelen = fread(file_senders[i].nextpiece, 1,
-                                             tox_file_data_size(m, self->num), file_to_send);
+                                             tox_file_data_size(m, friendnum), file_to_send);
 
-            wprintw(window, "Sending file: '%s'\n", path);
+            if (i == file_senders_index)
+                ++file_senders_index;
 
-            if (i == max_file_senders_index)
-                ++max_file_senders_index;
-
-            return;
+            return FILESEND_OK;
         }
-    } 
+    }
+    
+    return FILESEND_ERR;
 }
-*/
+
 
 /* This should only be called on exit */
 void close_file_transfers(void)
 {
     int i;
 
-    for (i = 0; i < max_file_senders_index; ++i) {
+    for (i = 0; i < file_senders_index; ++i)
+    {
         if (file_senders[i].active)
             fclose(file_senders[i].file);
     }
