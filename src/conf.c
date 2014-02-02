@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tox/tox.h>
+#include "misc.h"
 
 #define MINLINE    50 /* IP: 7 + port: 5 + key: 38 + spaces: 2 = 70. ! (& e.g. tox.im = 6) */
 #define MAXLINE   256 /* Approx max number of chars in a sever line (name + port + key) */
@@ -13,18 +14,23 @@ static char servers[MAXSERVERS][SERVERLEN];
 static uint16_t ports[MAXSERVERS];
 static uint8_t keys[MAXSERVERS][TOX_CLIENT_ID_SIZE];
 
-static int serverlist_load(void)
+static int serverlist_load(char *filepath)
 {
 	FILE *fp = NULL;
 
-	fp = fopen(SRVLIST_FILE, "r");
+	fp = fopen(filepath, "r");
 
 	if (fp == NULL)
+	{
+		perror("fopen");
 		return 1;
-
+	}
+	
 	char line[MAXLINE];
-	while (fgets(line, sizeof(line), fp) && linecnt < MAXSERVERS) {
-		if (strlen(line) > MINLINE) {
+	while (fgets(line, sizeof(line), fp) && linecnt < MAXSERVERS)
+	{
+		if (strlen(line) > MINLINE)
+		{
 			char *name = strtok(line, " ");
 			char *port = strtok(NULL, " ");
 			char *key_ascii = strtok(NULL, " ");
@@ -43,13 +49,10 @@ static int serverlist_load(void)
 			linecnt++;
 		}
 	}
-
-	if (linecnt < 1) {
-		fclose(fp);
+	
+	if (linecnt < 1)
 		return 2;
-	}
-
-	fclose(fp);
+		
 	return 0;
 }
 
@@ -68,9 +71,10 @@ static int init_connection_helper(Tox *m, int linenumber)
  * 4: failed to resolve name to IP
  * 5: serverlist file contains no acceptable line
  */
-static uint8_t init_connection_serverlist_loaded = 0;
-int init_connection(Tox *m)
+int init_connection(Tox *m, char *DHTservers_path)
 {
+	static uint8_t init_connection_serverlist_loaded = 0;
+	
 	if (linecnt > 0) /* already loaded serverlist */
 		return init_connection_helper(m, rand() % linecnt) ? 0 : 4;
 
@@ -78,9 +82,10 @@ int init_connection(Tox *m)
 	 * - load the serverlist
 	 * - connect to "everyone" inside
 	 */
-	if (!init_connection_serverlist_loaded) {
-		init_connection_serverlist_loaded = 1;
-		int res = serverlist_load();
+	if (!init_connection_serverlist_loaded)
+	{
+		init_connection_serverlist_loaded = TRUE;
+		int res = serverlist_load(DHTservers_path);
 		if (res)
 			return res;
 
@@ -207,5 +212,7 @@ int toxdata_load(Tox *m, char *path)
 	st = toxdata_store(m, path);
 	if (st != 0)
 		return 5 + st;
+	
+	return 0;
 }
 

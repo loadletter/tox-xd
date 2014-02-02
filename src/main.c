@@ -5,8 +5,9 @@
 #include "misc.h"
 #include "fileop.h"
 
+#define DHTSERVERS "/tmp/DHTservers"
 
-static void do_tox(Tox *m)
+static void toxconn_do(Tox *m)
 {
 	static int conn_try = 0;
 	static int conn_err = 0;
@@ -16,7 +17,7 @@ static void do_tox(Tox *m)
 	{
 		if (!conn_err)
 		{
-			conn_err = init_connection(m);
+			conn_err = init_connection(m, DHTSERVERS);
 			INFO("Establishing connection...");
 				
 			if(conn_err)
