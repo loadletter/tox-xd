@@ -6,7 +6,7 @@ CC=gcc
 all: CC += -march=native -O3
 all:$(OBJDIR) $(OBJDIR)/main
 
-debug: CC += -g
+debug: CC += -g -DDEBUG
 debug: $(OBJDIR) $(OBJDIR)/main
 
 clean:
@@ -33,5 +33,5 @@ $(OBJDIR)/filesend.o: src/filesend.c
 $(OBJDIR)/main.o: src/main.c $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o
 	$(CC) $(CFLAGS) $< -c -o $@
 	
-$(OBJDIR)/main: $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/main.o
-	$(CC) $(LDLIBS) $? -o $@
+$(OBJDIR)/main: $(OBJDIR)/main.o
+	$(CC) $(LDLIBS) $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/main.o -o $@
