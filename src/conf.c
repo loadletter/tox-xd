@@ -94,3 +94,103 @@ int init_connection(Tox *m)
 	/* empty serverlist file */
 	return 5;
 }
+
+
+/*
+ * Store Messenger to given location
+ * Return 0 stored successfully
+ * Return 1 file path is NULL
+ * Return 2 malloc failed
+ * Return 3 opening path failed
+ * Return 4 fwrite failed
+ */
+int store_data(Tox *m, char *path)
+{
+	if (path == NULL)
+		return 1;
+
+	FILE *fd;
+	size_t len;
+	uint8_t *buf;
+
+	len = tox_size(m);
+	buf = malloc(len);
+
+	if (buf == NULL)
+	{
+		perror("malloc");
+		return 2;
+	}
+
+	tox_save(m, buf);
+
+	fd = fopen(path, "wb");
+	if (fd == NULL)
+	{
+		perror("fopen");
+		free(buf);
+		return 3;
+	}
+
+	if (fwrite(buf, len, 1, fd) != 1)
+	{
+		perror("fwrite");
+		free(buf);
+		fclose(fd);
+		return 4;
+	}
+
+	free(buf);
+	fclose(fd);
+	return 0;
+}
+/*
+int load_data(Tox *m, char *path)
+{
+	FILE *fd;
+	size_t len;
+	uint8_t *buf;
+
+	if ((fd = fopen(path, "rb")) != NULL) {
+		fseek(fd, 0, SEEK_END);
+		len = ftell(fd);
+		fseek(fd, 0, SEEK_SET);
+
+		buf = malloc(len);
+
+		if (buf == NULL) {
+			fclose(fd);
+			endwin();
+			fprintf(stderr, "malloc() failed. Aborting...\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (fread(buf, len, 1, fd) != 1) {
+			free(buf);
+			fclose(fd);
+			endwin();
+			fprintf(stderr, "fread() failed. Aborting...\n");
+			exit(EXIT_FAILURE);
+		}
+
+		tox_load(m, buf, len);
+
+		uint32_t i = 0;
+		uint8_t name[TOX_MAX_NAME_LENGTH];
+
+		while (tox_get_name(m, i, name) != -1)
+			on_friendadded(m, i++, false);
+
+		free(buf);
+		fclose(fd);
+	} else {
+		int st;
+
+		if ((st = store_data(m, path)) != 0) {
+			endwin();
+			fprintf(stderr, "Store messenger failed with return code: %d\n", st);
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+*/
