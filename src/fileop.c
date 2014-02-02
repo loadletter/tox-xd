@@ -13,7 +13,7 @@
 #include "crypto/md5.h"
 #include "crypto/sha256.h"
 
-#define HASHING_BUFSIZE 64 * 1024
+#define HASHING_BUFSIZE 64 * 1024 /* make it bigger? */
 #define SHRDIR_MAX_DESCRIPTORS 6
 
 FileNode **shr_list = NULL;
