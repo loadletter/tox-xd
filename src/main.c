@@ -16,7 +16,7 @@ static void do_tox(Tox *m)
 	{
 		if (!conn_err)
 		{
-			conn_err = init_connection(gtox);
+			conn_err = init_connection(m);
 			INFO("Establishing connection...");
 				
 			if(conn_err)

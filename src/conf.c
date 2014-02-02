@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <tox/tox.h>
+
 #define MINLINE    50 /* IP: 7 + port: 5 + key: 38 + spaces: 2 = 70. ! (& e.g. tox.im = 6) */
 #define MAXLINE   256 /* Approx max number of chars in a sever line (name + port + key) */
 #define MAXSERVERS 50
@@ -8,7 +13,7 @@ static char servers[MAXSERVERS][SERVERLEN];
 static uint16_t ports[MAXSERVERS];
 static uint8_t keys[MAXSERVERS][TOX_CLIENT_ID_SIZE];
 
-int serverlist_load(void)
+static int serverlist_load(void)
 {
 	FILE *fp = NULL;
 
@@ -48,7 +53,7 @@ int serverlist_load(void)
 	return 0;
 }
 
-int init_connection_helper(Tox *m, int linenumber)
+static int init_connection_helper(Tox *m, int linenumber)
 {
 	return tox_bootstrap_from_address(m, servers[linenumber], TOX_ENABLE_IPV6_DEFAULT,
 												ports[linenumber], keys[linenumber]);
@@ -104,7 +109,7 @@ int init_connection(Tox *m)
  * Return 3 opening path failed
  * Return 4 fwrite failed
  */
-int store_data(Tox *m, char *path)
+int toxdata_store(Tox *m, char *path)
 {
 	if (path == NULL)
 		return 1;
@@ -152,7 +157,7 @@ int store_data(Tox *m, char *path)
  * Return 4 fread failed
  * Return > 5 error storing new
  */
-int load_data(Tox *m, char *path)
+int toxdata_load(Tox *m, char *path)
 {
 	FILE *fd;
 	size_t len;
@@ -199,7 +204,7 @@ int load_data(Tox *m, char *path)
 	}
 
 	/* save current */
-	st = store_data(m, path);
+	st = toxdata_store(m, path);
 	if (st != 0)
 		return 5 + st;
 }
