@@ -5,6 +5,38 @@
 #include "misc.h"
 #include "fileop.h"
 
+
+static void do_tox(Tox *m)
+{
+	static int conn_try = 0;
+	static int conn_err = 0;
+	static int dht_on = FALSE;
+
+	if (!dht_on && !tox_isconnected(m) && !(conn_try++ % 100))
+	{
+		if (!conn_err)
+		{
+			conn_err = init_connection(gtox);
+			INFO("Establishing connection...");
+				
+			if(conn_err)
+				ERROR("Auto-connect failed with error code %d", conn_err);
+		}
+	}
+	else if (!dht_on && tox_isconnected(m))
+	{
+		dht_on = TRUE;
+		INFO("DHT connected.");
+	}
+	else if (dht_on && !tox_isconnected(m))
+	{
+		dht_on = FALSE;
+		WARNING("DHT disconnected. Attempting to reconnect.");
+	}
+
+	tox_do(m);
+}
+
 int main(void)
 {
 	struct sigaction sigu1a;
