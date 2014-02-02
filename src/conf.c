@@ -144,53 +144,63 @@ int store_data(Tox *m, char *path)
 	fclose(fd);
 	return 0;
 }
+
 /*
+ * Load Messenger from given location, create new if location doesn't exist
+ * Return 0 loaded successfully
+ * Return 2 malloc failed
+ * Return 4 fread failed
+ * Return > 5 error storing new
+ */
 int load_data(Tox *m, char *path)
 {
 	FILE *fd;
 	size_t len;
 	uint8_t *buf;
+	int st;
 
-	if ((fd = fopen(path, "rb")) != NULL) {
+	fd = fopen(path, "rb");
+	if (fd != NULL)
+	{
 		fseek(fd, 0, SEEK_END);
 		len = ftell(fd);
 		fseek(fd, 0, SEEK_SET);
 
 		buf = malloc(len);
 
-		if (buf == NULL) {
+		if (buf == NULL)
+		{
 			fclose(fd);
-			endwin();
-			fprintf(stderr, "malloc() failed. Aborting...\n");
-			exit(EXIT_FAILURE);
+			perror("malloc");
+			return 2;
 		}
 
-		if (fread(buf, len, 1, fd) != 1) {
+		if (fread(buf, len, 1, fd) != 1)
+		{
 			free(buf);
 			fclose(fd);
-			endwin();
-			fprintf(stderr, "fread() failed. Aborting...\n");
-			exit(EXIT_FAILURE);
+			perror("fread");
+			return 4
 		}
 
 		tox_load(m, buf, len);
-
+		
+		/* TODO: callback
 		uint32_t i = 0;
 		uint8_t name[TOX_MAX_NAME_LENGTH];
 
 		while (tox_get_name(m, i, name) != -1)
-			on_friendadded(m, i++, false);
+			on_friendadded(m, i++, false);*/
 
 		free(buf);
 		fclose(fd);
-	} else {
-		int st;
-
-		if ((st = store_data(m, path)) != 0) {
-			endwin();
-			fprintf(stderr, "Store messenger failed with return code: %d\n", st);
-			exit(EXIT_FAILURE);
-		}
+		
+		return 0;
 	}
+
+	/* save current */
+	st = store_data(m, path);
+	if (st != 0)
+		return 5 + st;
 }
-*/
+
