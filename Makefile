@@ -1,12 +1,16 @@
-CFLAGS=-Wall -march=native -O3
+CFLAGS=-Wall
 LDLIBS=-lsodium -ltoxcore
 OBJDIR=build
 CC=gcc
 
-all: $(OBJDIR) $(OBJDIR)/main
+all: CC += -march=native -O3
+all:$(OBJDIR) $(OBJDIR)/main
+
+debug: CC += -g
+debug: $(OBJDIR) $(OBJDIR)/main
 
 clean:
-	$(RM) -f $(OBJDIR)/main.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
+	$(RM) -f $(OBJDIR)/main $(OBJDIR)/main.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -20,16 +24,14 @@ $(OBJDIR)/md5.o: src/crypto/md5.c
 $(OBJDIR)/sha256.o: src/crypto/sha256.c
 	$(CC) $(CFLAGS) $< -c -o $@
 	
-crypto: $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
-
-$(OBJDIR)/fileop.o: src/fileop.c crypto
+$(OBJDIR)/fileop.o: src/fileop.c $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
 	$(CC) $(CFLAGS) $< -c -o $@
 
-$(OBJDIR)/filesend.o: src/filesend.c crypto
+$(OBJDIR)/filesend.o: src/filesend.c
 	$(CC) $(CFLAGS) $< -c -o $@
 	
 $(OBJDIR)/main.o: src/main.c $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o
 	$(CC) $(CFLAGS) $< -c -o $@
 	
-$(OBJDIR)/main: $(OBJDIR)/main.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
+$(OBJDIR)/main: $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/main.o
 	$(CC) $(LDLIBS) $? -o $@

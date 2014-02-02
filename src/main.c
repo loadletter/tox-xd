@@ -7,21 +7,14 @@
 
 int main(void)
 {
-	int i = 0;
-	/*struct sigaction sigu1a;
+	struct sigaction sigu1a;
 	sigu1a.sa_handler = file_recheck_callback;
-	sigaction(SIGUSR1, &sigu1a, NULL);*/
+	sigaction(SIGUSR1, &sigu1a, NULL);
 	
 	while(TRUE)
 	{
-		if(i == 200)
-		{
-			file_recheck_callback(SIGUSR1);
-			i = 0;
-		}
 		file_do("../");
 		usleep(20 * 1000);
-		i++;
 	}
 	return 0;
 }

@@ -259,7 +259,9 @@ void file_recheck_callback(int signo)
 		{
 			hashing = -1;
 			if(new_list_len == 0)
-				file_recheck = FALSE;		
+				file_recheck = FALSE;
+			
+			INFO("Hash: %i - %s\n", last, shr_list[last]->file);
 		}
 		
 		if(rc < 0)
