@@ -190,7 +190,7 @@ int toxdata_load(Tox *m, char *path)
 			free(buf);
 			fclose(fd);
 			perror("fread");
-			return 4
+			return 4;
 		}
 
 		tox_load(m, buf, len);

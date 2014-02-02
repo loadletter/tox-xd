@@ -2,8 +2,10 @@
 #include <unistd.h>
 #include <tox/tox.h>
 #include <signal.h>
+
 #include "misc.h"
 #include "fileop.h"
+#include "conf.h"
 
 #define DHTSERVERS "/tmp/DHTservers"
 
@@ -21,7 +23,7 @@ static void toxconn_do(Tox *m)
 			INFO("Establishing connection...");
 				
 			if(conn_err)
-				ERROR("Auto-connect failed with error code %d", conn_err);
+				WARNING("Auto-connect failed with error code %i", conn_err);
 		}
 	}
 	else if (!dht_on && tox_isconnected(m))
