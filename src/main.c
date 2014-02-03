@@ -2,12 +2,21 @@
 #include <unistd.h>
 #include <tox/tox.h>
 #include <signal.h>
+#include <string.h>
 
 #include "misc.h"
 #include "fileop.h"
 #include "conf.h"
 
 #define DHTSERVERS "/tmp/DHTservers"
+
+static volatile sig_atomic_t main_loop_running = TRUE;
+
+void main_loop_stop(int signo)
+{
+	if(signo == SIGINT || signo == SIGTERM)
+		main_loop_running = FALSE;
+}
 
 static void toxconn_do(Tox *m)
 {
@@ -81,17 +90,26 @@ int main(void)
 	ylog_set_level(YLOG_DEBUG, getenv("YLOG_LEVEL"));
 	
 	struct sigaction sigu1a;
+	memset(&sigu1a, 0, sizeof(sigu1a));
 	sigu1a.sa_handler = file_recheck_callback;
 	sigaction(SIGUSR1, &sigu1a, NULL);
 	
+	struct sigaction sigint_term;
+	memset(&sigint_term, 0, sizeof(sigint_term));
+	sigint_term.sa_handler = main_loop_stop;
+	sigaction(SIGINT, &sigint_term, NULL);
+	sigaction(SIGTERM, &sigint_term, NULL);
+	
 	Tox *m = toxconn_init(FALSE);
 	
-	while(TRUE)
+	while(main_loop_running)
 	{
 		file_do("../");
 		toxconn_do(m);
 		usleep(20 * 1000);
 	}
+	
+	ywarn("SIGINT/SIGTERM received, terminating...");
 	
 	tox_kill(m);
 	
