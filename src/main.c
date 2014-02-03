@@ -40,16 +40,58 @@ static void toxconn_do(Tox *m)
 	tox_do(m);
 }
 
+static Tox *toxconn_init(int ipv4)
+{
+	/* Init core */
+	int ipv6 = !ipv4;
+	Tox *m = tox_new(ipv6);
+
+	if (TOX_ENABLE_IPV6_DEFAULT && m == NULL)
+	{
+		fprintf(stderr, "IPv6 didn't initialize, trying IPv4 only\n");
+		m = tox_new(0);
+	}
+
+	if (m == NULL)
+		return NULL;
+
+	/* Callbacks */
+	/*tox_callback_connection_status(m, on_connectionchange, NULL);
+	tox_callback_friend_request(m, on_request, NULL);
+	tox_callback_friend_message(m, on_message, NULL);
+	tox_callback_name_change(m, on_nickchange, NULL);
+	tox_callback_user_status(m, on_statuschange, NULL);
+	tox_callback_status_message(m, on_statusmessagechange, NULL);
+	tox_callback_friend_action(m, on_action, NULL);
+	tox_callback_group_invite(m, on_groupinvite, NULL);
+	tox_callback_group_message(m, on_groupmessage, NULL);
+	tox_callback_group_action(m, on_groupaction, NULL);
+	tox_callback_group_namelist_change(m, on_group_namelistchange, NULL);
+	tox_callback_file_send_request(m, on_file_sendrequest, NULL);
+	tox_callback_file_control(m, on_file_control, NULL);
+	tox_callback_file_data(m, on_file_data, NULL);*/
+
+	tox_set_name(m, (uint8_t *) "Cool bot", sizeof("Cool bot"));
+
+	return m;
+}
+
 int main(void)
 {
 	struct sigaction sigu1a;
 	sigu1a.sa_handler = file_recheck_callback;
 	sigaction(SIGUSR1, &sigu1a, NULL);
 	
+	Tox *m = toxconn_init(FALSE);
+	
 	while(TRUE)
 	{
 		file_do("../");
+		toxconn_do(m);
 		usleep(20 * 1000);
 	}
+	
+	tox_kill(m);
+	
 	return 0;
 }
