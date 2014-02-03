@@ -20,21 +20,21 @@ static void toxconn_do(Tox *m)
 		if (!conn_err)
 		{
 			conn_err = init_connection(m, DHTSERVERS);
-			INFO("Establishing connection...");
+			yinfo("Establishing connection...");
 				
 			if(conn_err)
-				WARNING("Auto-connect failed with error code %i", conn_err);
+				yerr("Auto-connect failed with error code %i", conn_err);
 		}
 	}
 	else if (!dht_on && tox_isconnected(m))
 	{
 		dht_on = TRUE;
-		INFO("DHT connected.");
+		yinfo("DHT connected.");
 	}
 	else if (dht_on && !tox_isconnected(m))
 	{
 		dht_on = FALSE;
-		WARNING("DHT disconnected. Attempting to reconnect.");
+		ywarn("DHT disconnected. Attempting to reconnect.");
 	}
 
 	tox_do(m);
@@ -48,7 +48,7 @@ static Tox *toxconn_init(int ipv4)
 
 	if (TOX_ENABLE_IPV6_DEFAULT && m == NULL)
 	{
-		fprintf(stderr, "IPv6 didn't initialize, trying IPv4 only\n");
+		yerr("IPv6 didn't initialize, trying IPv4 only");
 		m = tox_new(0);
 	}
 
@@ -78,6 +78,8 @@ static Tox *toxconn_init(int ipv4)
 
 int main(void)
 {
+	ylog_set_level(YLOG_DEBUG, getenv("YLOG_LEVEL"));
+	
 	struct sigaction sigu1a;
 	sigu1a.sa_handler = file_recheck_callback;
 	sigaction(SIGUSR1, &sigu1a, NULL);

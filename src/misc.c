@@ -1,6 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include "ylog.h"
+
+void perrlog(const char *msg)
+{
+	yerr("%s: %s", msg, strerror(errno));
+}
 
 // XXX: FIX
 unsigned char *hex_string_to_bin(char hex_string[])

@@ -36,7 +36,7 @@ int file_checksumcalc_noblock(FileHash *dest, char *filename)
 	{
 		if(!(f = fopen(filename, "rb")))
 		{
-			perror("fopen");
+			perrlog("fopen");
 			return(-1);
 		}
 		crc32 = 0;
@@ -57,7 +57,7 @@ int file_checksumcalc_noblock(FileHash *dest, char *filename)
 		MD5_Final(dest->md5, &md5_ctx);
 		sha256_finish(&sha_ctx, dest->sha256);
 		if(fclose(f) != 0)
-			perror("fclose"); /* TODO: maybe do something more safe? */
+			perrlog("fclose"); /* TODO: maybe do something more safe? */
 		f = NULL;
 		rc = 0;
 	}
@@ -79,7 +79,7 @@ int file_checksumcalc(FileHash *dest, char *filename)
 
 	if(!(f = fopen(filename, "rb")))
 	{
-		perror("fopen");
+		perrlog("fopen");
 		return(-1);
 	}
 	
@@ -99,7 +99,7 @@ int file_checksumcalc(FileHash *dest, char *filename)
 	sha256_finish(&sha_ctx, dest->sha256);
 	
 	if(fclose(f) != 0)
-		perror("fclose");
+		perrlog("fclose");
 	
 	return(0);
 }
@@ -111,7 +111,7 @@ static int file_walk_callback(const char *path, const struct stat *sptr, int typ
 {
 	int i, n = -1;
 	if (type == FTW_DNR)
-		fprintf(stderr, "Directory %s cannot be traversed.\n", path);
+		ywarn("Directory %s cannot be traversed.\n", path);
 	if (type == FTW_F)
 	{
 		for(i=0;i<shr_list_len;i++)
@@ -130,13 +130,13 @@ static int file_walk_callback(const char *path, const struct stat *sptr, int typ
 			new_list = realloc(new_list, sizeof(FileNode *) * (new_list_len + 1));
 			if(new_list == NULL)
 			{
-				perror("realloc");
+				perrlog("realloc");
 				return -1;
 			}
 			new_list[new_list_len] = malloc(sizeof(FileNode));
 			if(new_list[new_list_len] == NULL)
 			{
-				perror("malloc");
+				perrlog("malloc");
 				return -1;
 			}
 			new_list[new_list_len]->file = strdup(path);
@@ -157,7 +157,7 @@ int file_walk_shared(char *shrdir)
 	abspath = realpath(shrdir, abspath);
 	if(abspath == NULL)
 	{
-		perror("realpath");
+		perrlog("realpath");
 		return -1;
 	}
 	rc = ftw(abspath, file_walk_callback, SHRDIR_MAX_DESCRIPTORS);
@@ -218,7 +218,7 @@ void file_recheck_callback(int signo)
 			shr_list = realloc(shr_list, sizeof(FileNode *) * (shr_list_len + 1));
 			if(shr_list == NULL)
 			{
-				perror("realloc");
+				perrlog("realloc");
 				return -1;
 			}
 			shr_list[shr_list_len] = new_list[i];
@@ -238,14 +238,14 @@ void file_recheck_callback(int signo)
 		new_list_len--;
 		if(new_list == NULL && new_list_len != 0)
 		{
-			perror("realloc");
+			perrlog("realloc");
 			return -1;
 		}
 		
 		shr_list[last]->info = malloc(sizeof(FileHash));
 		if(shr_list[last]->info == NULL)
 		{
-			perror("malloc");
+			perrlog("malloc");
 			return -1;
 		}
 		
@@ -261,7 +261,7 @@ void file_recheck_callback(int signo)
 			if(new_list_len == 0)
 				file_recheck = FALSE;
 			
-			INFO("Hash: %i - %s", last, shr_list[last]->file);
+			ydebug("Hash: %i - %s", last, shr_list[last]->file);
 		}
 		
 		if(rc < 0)

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <tox/tox.h>
 
@@ -42,7 +44,7 @@ void file_senders_do(Tox *m)
 		/* If file transfer has timed out kill transfer and send kill control */
 		if ((file_senders[i].timestamp + FSEND_TIMEOUT) <= current_time)
 		{
-			WARNING("Transfer timed out: %s", pathname);			
+			yerr("Transfer timed out: %s", pathname);			
 			tox_file_send_control(m, friendnum, 0, filenum, TOX_FILECONTROL_KILL, 0, 0);
 			file_sender_close(i);
 			continue;
@@ -61,7 +63,7 @@ void file_senders_do(Tox *m)
 
 			if (file_senders[i].piecelen == 0)
 			{
-				INFO("Transfer completed: %s", pathname);
+				yinfo("Transfer completed: %s", pathname);
 				tox_file_send_control(m, friendnum, 0, filenum, TOX_FILECONTROL_FINISHED, 0, 0);
 				file_sender_close(i);
 				break;

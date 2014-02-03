@@ -22,7 +22,7 @@ static int serverlist_load(char *filepath)
 
 	if (fp == NULL)
 	{
-		perror("fopen");
+		perrlog("fopen");
 		return 1;
 	}
 	
@@ -128,7 +128,7 @@ int toxdata_store(Tox *m, char *path)
 
 	if (buf == NULL)
 	{
-		perror("malloc");
+		perrlog("malloc");
 		return 2;
 	}
 
@@ -137,14 +137,14 @@ int toxdata_store(Tox *m, char *path)
 	fd = fopen(path, "wb");
 	if (fd == NULL)
 	{
-		perror("fopen");
+		perrlog("fopen");
 		free(buf);
 		return 3;
 	}
 
 	if (fwrite(buf, len, 1, fd) != 1)
 	{
-		perror("fwrite");
+		perrlog("fwrite");
 		free(buf);
 		fclose(fd);
 		return 4;
@@ -181,7 +181,7 @@ int toxdata_load(Tox *m, char *path)
 		if (buf == NULL)
 		{
 			fclose(fd);
-			perror("malloc");
+			perrlog("malloc");
 			return 2;
 		}
 
@@ -189,7 +189,7 @@ int toxdata_load(Tox *m, char *path)
 		{
 			free(buf);
 			fclose(fd);
-			perror("fread");
+			perrlog("fread");
 			return 4;
 		}
 
