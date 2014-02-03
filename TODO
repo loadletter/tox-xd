@@ -26,11 +26,10 @@ Pack Info for Pack #1:
 
 Keep number of downloads in memory and write them down when closing?
 
-Load files from the shared directory, and keep path + packlist + lastmodified in memory (linked list?, hash table? array from toxcore/misc_tools.h?)
+hash: (speed on single core sempron: 2.2ms for 64kb block)
 
-When SIGUSR1 is received, set a flag (volatile sig_atomic_t),
-in the main loop the thing will call a function if the flag is set,
-that will walk the directories and check if the file is alredy in memory
-or check that lastmodified in memory is equal to the one in the
-otherwise start hashing, and then write out to disk
-(make the hash function hash only a chunk a time (speed on single core sempron: 2.2ms for 64kb block)(static variables and other magic))
+TODO:
+- add real logging
+- implement all the needed callbacks
+- implement cache data storage
+
