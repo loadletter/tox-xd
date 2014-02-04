@@ -13,4 +13,5 @@
 
 void perrlog(const char *msg);
 unsigned char *hex_string_to_bin(char hex_string[]);
+char *human_readable_id(uint8_t *address, uint16_t length);
 #endif

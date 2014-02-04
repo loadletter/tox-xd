@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <errno.h>
 #include "ylog.h"
 
@@ -28,4 +29,15 @@ unsigned char *hex_string_to_bin(char hex_string[])
 		sscanf(pos, "%2hhx", &val[i]);
 
 	return val;
+}
+
+char *human_readable_id(uint8_t *address, uint16_t length)
+{
+    char id[length * 2 + 1];
+    int i;
+
+    memset(id, 0, sizeof(id));
+    for (i = 0; i < length; i++)
+        sprintf(id,"%s%02hhX", id, address[i]);
+    return strdup(id);
 }

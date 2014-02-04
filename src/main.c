@@ -49,6 +49,24 @@ static void toxconn_do(Tox *m)
 	tox_do(m);
 }
 
+void on_request(uint8_t *key, uint8_t *data, uint16_t length, void *m)
+{
+	char *keystr;
+	data[length - 1] = '\0'; /* make sure the message is null terminated */
+	
+	keystr = human_readable_id(key, TOX_CLIENT_ID_SIZE);
+	yinfo("Friend request from %s (%s)", keystr, data);
+	int friendnum = tox_add_friend_norequest(m, key);
+	
+	if(friendnum == -1)
+		yerr("Failed to add %s", keystr);
+	else
+		yinfo("Added %s as friend n° %i", keystr, friendnum);
+		
+	free(keystr);
+}
+
+
 static Tox *toxconn_init(int ipv4)
 {
 	/* Init core */
@@ -65,9 +83,9 @@ static Tox *toxconn_init(int ipv4)
 		return NULL;
 
 	/* Callbacks */
-	/*tox_callback_connection_status(m, on_connectionchange, NULL);
-	tox_callback_friend_request(m, on_request, NULL);
-	tox_callback_friend_message(m, on_message, NULL);
+	/*tox_callback_connection_status(m, on_connectionchange, NULL);*/
+	tox_callback_friend_request(m, on_request, m);
+	/*tox_callback_friend_message(m, on_message, NULL);
 	tox_callback_name_change(m, on_nickchange, NULL);
 	tox_callback_user_status(m, on_statuschange, NULL);
 	tox_callback_status_message(m, on_statusmessagechange, NULL);
@@ -85,6 +103,19 @@ static Tox *toxconn_init(int ipv4)
 	return m;
 }
 
+void printownid(Tox *m)
+{
+	char *idstr;
+	uint8_t address[TOX_FRIEND_ADDRESS_SIZE];
+	
+	tox_get_address(m, address);
+	idstr = human_readable_id(address, TOX_FRIEND_ADDRESS_SIZE);
+	
+	yinfo("ID: %s", idstr);
+	free(idstr);
+}
+
+
 int main(void)
 {
 	ylog_set_level(YLOG_DEBUG, getenv("YLOG_LEVEL"));
@@ -101,6 +132,7 @@ int main(void)
 	sigaction(SIGTERM, &sigint_term, NULL);
 	
 	Tox *m = toxconn_init(FALSE);
+	printownid(m);
 	
 	while(main_loop_running)
 	{
