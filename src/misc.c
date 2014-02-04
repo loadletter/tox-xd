@@ -17,7 +17,7 @@ unsigned char *hex_string_to_bin(char hex_string[])
 
 	if (val == NULL)
 	{
-		perror("malloc");
+		perrlog("malloc");
 		return NULL;
 	}
 

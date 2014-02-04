@@ -90,7 +90,7 @@ int file_sender_new(int friendnum, FileNode *fileinfo, Tox *m)
 	FILE *file_to_send = fopen(fileinfo->file, "r");
 	if (file_to_send == NULL)
 	{
-		perror("fopen");
+		perrlog("fopen");
 		return FILESEND_ERR_FILEIO;
 	}
 

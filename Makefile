@@ -1,5 +1,5 @@
 CFLAGS=-Wall
-LDLIBS=-lsodium -ltoxcore
+LDLIBS=-ltoxcore
 OBJDIR=build
 CC=gcc
 
@@ -43,4 +43,4 @@ $(OBJDIR)/main.o: src/main.c $(OBJDIR)/conf.o $(OBJDIR)/fileop.o $(OBJDIR)/files
 	$(CC) $(CFLAGS) $< -c -o $@
 	
 $(OBJDIR)/main: $(OBJDIR)/main.o
-	$(CC) $(LDLIBS) $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/ylog.o $(OBJDIR)/misc.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/conf.o $(OBJDIR)/main.o -o $@
+	$(CC) $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/ylog.o $(OBJDIR)/misc.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/conf.o $(OBJDIR)/main.o -o $@ $(LDLIBS)
