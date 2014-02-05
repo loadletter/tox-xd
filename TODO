@@ -29,7 +29,7 @@ Keep number of downloads in memory and write them down when closing?
 hash: (speed on single core sempron: 2.2ms for 64kb block)
 
 TODO:
-- add real logging
+- move existing callbacks to another source file
 - implement all the needed callbacks
 - implement cache data storage
 

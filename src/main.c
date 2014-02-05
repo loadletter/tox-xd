@@ -11,6 +11,7 @@
 #define DHTSERVERS "/tmp/DHTservers"
 
 static volatile sig_atomic_t main_loop_running = TRUE;
+static int group_chat_number = -1;
 
 void main_loop_stop(int signo)
 {
@@ -73,7 +74,17 @@ void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *u
 	rc = tox_get_name(m, friendnum, fnick);
 	if(rc == -1)
 		strcpy((char *) fnick, "Unknown");
+	
 	ydebug("Message from friend n°%i [%s]: %s", friendnum, fnick, string);
+	
+	/* TODO: add function to parse commands */
+	if(strcmp((char *) string, "invite") == 0 && group_chat_number != -1)
+	{
+		rc = tox_invite_friend(m, friendnum, group_chat_number);
+		if(rc == -1)
+			yerr("Failed to invite friend n°%i [%s] to groupchat n°%i", friendnum, fnick, group_chat_number);
+	}
+	
 }
 
 static Tox *toxconn_init(int ipv4)
@@ -142,6 +153,10 @@ int main(void)
 	
 	Tox *m = toxconn_init(FALSE);
 	printownid(m);
+	
+	group_chat_number = tox_add_groupchat(m);
+	if(group_chat_number == -1)
+		yerr("Failed to initialize groupchat");
 	
 	while(main_loop_running)
 	{
