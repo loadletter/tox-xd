@@ -66,6 +66,15 @@ void on_request(uint8_t *key, uint8_t *data, uint16_t length, void *m)
 	free(keystr);
 }
 
+void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *userdata)
+{
+	int rc;
+	uint8_t fnick[TOX_MAX_NAME_LENGTH];
+	rc = tox_get_name(m, friendnum, fnick);
+	if(rc == -1)
+		strcpy((char *) fnick, "Unknown");
+	ydebug("Message from friend n°%i [%s]: %s", friendnum, fnick, string);
+}
 
 static Tox *toxconn_init(int ipv4)
 {
@@ -85,8 +94,8 @@ static Tox *toxconn_init(int ipv4)
 	/* Callbacks */
 	/*tox_callback_connection_status(m, on_connectionchange, NULL);*/
 	tox_callback_friend_request(m, on_request, m);
-	/*tox_callback_friend_message(m, on_message, NULL);
-	tox_callback_name_change(m, on_nickchange, NULL);
+	tox_callback_friend_message(m, on_message, NULL);
+	/*tox_callback_name_change(m, on_nickchange, NULL);
 	tox_callback_user_status(m, on_statuschange, NULL);
 	tox_callback_status_message(m, on_statusmessagechange, NULL);
 	tox_callback_friend_action(m, on_action, NULL);
