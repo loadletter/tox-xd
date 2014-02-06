@@ -7,13 +7,14 @@
 #include "misc.h"
 #include "fileop.h"
 #include "conf.h"
+#include "callbacks.h"
 
 #define DHTSERVERS "/tmp/DHTservers"
 
 static volatile sig_atomic_t main_loop_running = TRUE;
-static int group_chat_number = -1;
 
-void main_loop_stop(int signo)
+
+static void main_loop_stop(int signo)
 {
 	if(signo == SIGINT || signo == SIGTERM)
 		main_loop_running = FALSE;
@@ -50,42 +51,6 @@ static void toxconn_do(Tox *m)
 	tox_do(m);
 }
 
-void on_request(uint8_t *key, uint8_t *data, uint16_t length, void *m)
-{
-	char *keystr;
-	data[length - 1] = '\0'; /* make sure the message is null terminated */
-	
-	keystr = human_readable_id(key, TOX_CLIENT_ID_SIZE);
-	yinfo("Friend request from %s (%s)", keystr, data);
-	int friendnum = tox_add_friend_norequest(m, key);
-	
-	if(friendnum == -1)
-		yerr("Failed to add %s", keystr);
-	else
-		yinfo("Added %s as friend n° %i", keystr, friendnum);
-		
-	free(keystr);
-}
-
-void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *userdata)
-{
-	int rc;
-	uint8_t fnick[TOX_MAX_NAME_LENGTH];
-	rc = tox_get_name(m, friendnum, fnick);
-	if(rc == -1)
-		strcpy((char *) fnick, "Unknown");
-	
-	ydebug("Message from friend n°%i [%s]: %s", friendnum, fnick, string);
-	
-	/* TODO: add function to parse commands */
-	if(strcmp((char *) string, "invite") == 0 && group_chat_number != -1)
-	{
-		rc = tox_invite_friend(m, friendnum, group_chat_number);
-		if(rc == -1)
-			yerr("Failed to invite friend n°%i [%s] to groupchat n°%i", friendnum, fnick, group_chat_number);
-	}
-	
-}
 
 static Tox *toxconn_init(int ipv4)
 {
@@ -119,11 +84,13 @@ static Tox *toxconn_init(int ipv4)
 	tox_callback_file_data(m, on_file_data, NULL);*/
 
 	tox_set_name(m, (uint8_t *) "Cool bot", sizeof("Cool bot"));
+	
+	group_chat_init(m);
 
 	return m;
 }
 
-void printownid(Tox *m)
+static void printownid(Tox *m)
 {
 	char *idstr;
 	uint8_t address[TOX_FRIEND_ADDRESS_SIZE];
@@ -153,11 +120,7 @@ int main(void)
 	
 	Tox *m = toxconn_init(FALSE);
 	printownid(m);
-	
-	group_chat_number = tox_add_groupchat(m);
-	if(group_chat_number == -1)
-		yerr("Failed to initialize groupchat");
-	
+		
 	while(main_loop_running)
 	{
 		file_do("../");

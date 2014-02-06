@@ -10,7 +10,7 @@ debug: CC += -g
 debug: $(OBJDIR) $(OBJDIR)/main
 
 clean:
-	$(RM) -f $(OBJDIR)/main $(OBJDIR)/main.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/conf.o $(OBJDIR)/misc.o $(OBJDIR)/ylog.o
+	$(RM) -f $(OBJDIR)/main $(OBJDIR)/main.o $(OBJDIR)/callbacks.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/conf.o $(OBJDIR)/misc.o $(OBJDIR)/ylog.o
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -39,8 +39,11 @@ $(OBJDIR)/filesend.o: src/filesend.c
 $(OBJDIR)/conf.o: src/conf.c $(OBJDIR)/misc.o
 	$(CC) $(CFLAGS) $< -c -o $@
 
-$(OBJDIR)/main.o: src/main.c $(OBJDIR)/conf.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o
+$(OBJDIR)/callbacks.o: src/callbacks.c $(OBJDIR)/misc.o $(OBJDIR)/filesend.o
+	$(CC) $(CFLAGS) $< -c -o $@
+
+$(OBJDIR)/main.o: src/main.c $(OBJDIR)/callbacks.o $(OBJDIR)/conf.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o
 	$(CC) $(CFLAGS) $< -c -o $@
 	
 $(OBJDIR)/main: $(OBJDIR)/main.o
-	$(CC) $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/ylog.o $(OBJDIR)/misc.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/conf.o $(OBJDIR)/main.o -o $@ $(LDLIBS)
+	$(CC) $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o $(OBJDIR)/ylog.o $(OBJDIR)/misc.o $(OBJDIR)/fileop.o $(OBJDIR)/filesend.o $(OBJDIR)/conf.o $(OBJDIR)/callbacks.o $(OBJDIR)/main.o -o $@ $(LDLIBS)
