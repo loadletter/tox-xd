@@ -1,2 +1,2 @@
-tox-idcc
+tox-xd
 ========

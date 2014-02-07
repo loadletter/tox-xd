@@ -6,11 +6,12 @@ dir -- cache.lock
 Store in the cache previos info (plaintext)
 
 commands:
-idcc info packn: send info from the cached file
-idcc send packn: send the file
-idcc send -1: send a list of all the file as plaintext file
-idcc list: like previous but as a tox private message (optional)
-idcc remove packn: ?stop the transfer from server side?
+invite: join the groupchat where new files get announced
+info packn: send info from the cached file
+send packn: send the file
+send -1: send a list of all the file as plaintext file
+list: like previous but as a tox private message (optional)
+remove packn: ?stop the transfer from server side?
 
 
 Pack Info for Pack #1:
