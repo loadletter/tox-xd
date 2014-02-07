@@ -66,7 +66,9 @@ void on_new_file(FileNode *fn)
 	rc = tox_group_message_send(group_messenger, group_chat_number, (uint8_t *) msg, strlen(msg));
 	if(rc == -1)
 		goto errormsg;
-
+	
+	return;
+	
 	errormsg:
 		yerr("Failed to notify new file %s on groupchat", fn->file);
 }
