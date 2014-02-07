@@ -124,7 +124,7 @@ int main(void)
 		
 	while(main_loop_running)
 	{
-		file_do("../");
+		file_do("./");
 		toxconn_do(m);
 		usleep(20 * 1000);
 	}

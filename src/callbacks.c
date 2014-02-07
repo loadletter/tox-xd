@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <tox/tox.h>
 
 #include "misc.h"
@@ -55,16 +57,18 @@ void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *u
 
 void on_new_file(FileNode *fn)
 {
-	char *msg;
+	uint8_t groupmsg[PATH_MAX + sizeof("New file [%lu b]: %s") + 32] = {0}; /* max len of uint64 should be 20 + some useless space */
 	int rc;
 	if(group_chat_number == -1)
+		return;
+	
+	rc = snprintf((char *)groupmsg, sizeof(groupmsg), "New file [%lu b]: %s", fn->size, gnu_basename(fn->file));
+	if(rc <= 0)
 		goto errormsg;
+	groupmsg[rc] = '\0'; //TODO: fix, with groupmsg[rc -1] = '\0'; it doesn't print garbage on the chat, but it cuts the last character
 	
-	//msg = gnu_basename(fn->file); TODO: fix
-	msg = fn->file;
-	
-	rc = tox_group_message_send(group_messenger, group_chat_number, (uint8_t *) msg, strlen(msg));
-	if(rc == -1)
+	rc = tox_group_message_send(group_messenger, group_chat_number, groupmsg, rc);
+	if(rc == -1 && tox_group_number_peers(group_messenger, group_chat_number) > 1)
 		goto errormsg;
 	
 	return;
