@@ -13,7 +13,6 @@
 
 static volatile sig_atomic_t main_loop_running = TRUE;
 
-
 static void main_loop_stop(int signo)
 {
 	if(signo == SIGINT || signo == SIGTERM)
@@ -86,6 +85,8 @@ static Tox *toxconn_init(int ipv4)
 	tox_set_name(m, (uint8_t *) "Cool bot", sizeof("Cool bot"));
 	
 	group_chat_init(m);
+	
+	file_new_set_callback(on_new_file);
 
 	return m;
 }

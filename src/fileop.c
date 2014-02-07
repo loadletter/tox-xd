@@ -22,6 +22,8 @@ FileNode **new_list = NULL;
 uint new_list_len = 0;
 volatile sig_atomic_t file_recheck = FALSE;
 
+static void (*file_new_c)(FileNode *) = NULL;
+
 int file_checksumcalc_noblock(FileHash *dest, char *filename)
 {
 	static FILE *f = NULL;
@@ -261,6 +263,8 @@ void file_recheck_callback(int signo)
 			if(new_list_len == 0)
 				file_recheck = FALSE;
 			
+			if(file_new_c != NULL)
+				file_new_c(shr_list[last]);
 			ydebug("Hash: %i - %s", last, shr_list[last]->file);
 		}
 		
@@ -271,6 +275,10 @@ void file_recheck_callback(int signo)
 	return 0;
 }
 
+void file_new_set_callback(void (*func)(FileNode *))
+{
+	file_new_c = func;
+}
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
 /* test checksumcalc 

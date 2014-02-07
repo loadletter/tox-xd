@@ -11,6 +11,7 @@ void perrlog(const char *msg)
 }
 
 // XXX: FIX
+/* return value needs to be freed */
 unsigned char *hex_string_to_bin(char hex_string[])
 {
 	size_t len = strlen(hex_string);
@@ -30,7 +31,7 @@ unsigned char *hex_string_to_bin(char hex_string[])
 
 	return val;
 }
-
+/* return value needs to be freed */
 char *human_readable_id(uint8_t *address, uint16_t length)
 {
     char id[length * 2 + 1];

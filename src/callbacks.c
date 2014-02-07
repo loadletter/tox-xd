@@ -2,11 +2,14 @@
 #include <tox/tox.h>
 
 #include "misc.h"
+#include "fileop.h"
 
 static int group_chat_number = -1;
+static Tox *group_messenger;
 
 int group_chat_init(Tox *m)
 {
+	group_messenger = m;
 	group_chat_number = tox_add_groupchat(m);
 	if(group_chat_number == -1)
 		yerr("Failed to initialize groupchat");
@@ -48,4 +51,22 @@ void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *u
 			yerr("Failed to invite friend n°%i [%s] to groupchat n°%i", friendnum, fnick, group_chat_number);
 	}
 	
+}
+
+void on_new_file(FileNode *fn)
+{
+	char *msg;
+	int rc;
+	if(group_chat_number == -1)
+		goto errormsg;
+	
+	//msg = gnu_basename(fn->file); TODO: fix
+	msg = fn->file;
+	
+	rc = tox_group_message_send(group_messenger, group_chat_number, (uint8_t *) msg, strlen(msg));
+	if(rc == -1)
+		goto errormsg;
+
+	errormsg:
+		yerr("Failed to notify new file %s on groupchat", fn->file);
 }
