@@ -41,3 +41,10 @@ char *human_readable_id(uint8_t *address, uint16_t length)
         sprintf(id,"%s%02hhX", id, address[i]);
     return strdup(id);
 }
+
+/* cut absolute pathname to filename */
+char *gnu_basename(char *path)
+{
+	char *base = strrchr(path, '/');
+	return base ? base+1 : path;
+}

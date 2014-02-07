@@ -72,13 +72,6 @@ void file_senders_do(Tox *m)
 	}
 }
 
-/* cut absolute pathname to filename */
-char *gnu_basename(char *path)
-{
-	char *base = strrchr(path, '/');
-	return base ? base+1 : path;
-}
-
 int file_sender_new(int friendnum, FileNode *fileinfo, Tox *m)
 {
 	if (file_senders_index >= (FSEND_MAX_FILES - 1))
