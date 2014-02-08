@@ -49,3 +49,19 @@ char *gnu_basename(char *path)
 	char *base = strrchr(path, '/');
 	return base ? base+1 : path;
 }
+
+/* dest must be at least 8 bytes */
+/* the output size isn't accurate */
+void human_readable_filesize(char *dest, off_t size)
+{
+	char unit_letter[] = " KMGTPEZY";
+	int unit_prefix = 0;
+	
+	while(size > 9999)
+	{
+		size /= 1024;
+		unit_prefix++;
+	}
+		
+	snprintf(dest, 8, "%lu %cb", size, unit_letter[unit_prefix]);
+}

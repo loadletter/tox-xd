@@ -57,12 +57,15 @@ void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *u
 
 void on_new_file(FileNode *fn)
 {
-	uint8_t groupmsg[PATH_MAX + sizeof("New file [%lu b]: %s") + 32] = {0}; /* max len of uint64 should be 20 + some useless space */
+	uint8_t groupmsg[sizeof("New file [9999  b]: %s") + PATH_MAX];
+	char hu_size[8];
 	int rc;
 	if(group_chat_number == -1)
 		return;
 	
-	rc = snprintf((char *)groupmsg, sizeof(groupmsg), "New file [%lu b]: %s", fn->size, gnu_basename(fn->file));
+	human_readable_filesize(hu_size, fn->size);
+	
+	rc = snprintf((char *)groupmsg, sizeof(groupmsg), "New file [%s]: %s", hu_size, gnu_basename(fn->file));
 	if(rc < 0)
 		goto errormsg;
 	
