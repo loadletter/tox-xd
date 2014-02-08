@@ -63,11 +63,10 @@ void on_new_file(FileNode *fn)
 		return;
 	
 	rc = snprintf((char *)groupmsg, sizeof(groupmsg), "New file [%lu b]: %s", fn->size, gnu_basename(fn->file));
-	if(rc <= 0)
+	if(rc < 0)
 		goto errormsg;
-	groupmsg[rc] = '\0'; //TODO: fix, with groupmsg[rc -1] = '\0'; it doesn't print garbage on the chat, but it cuts the last character
 	
-	rc = tox_group_message_send(group_messenger, group_chat_number, groupmsg, rc);
+	rc = tox_group_message_send(group_messenger, group_chat_number, groupmsg, rc + 1); /* length needs to include the terminator */
 	if(rc == -1 && tox_group_number_peers(group_messenger, group_chat_number) > 1)
 		goto errormsg;
 	
