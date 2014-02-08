@@ -279,6 +279,14 @@ void file_new_set_callback(void (*func)(FileNode *, int))
 {
 	file_new_c = func;
 }
+
+/* ENTERPRISE extern */
+FileNode **file_get_shared(void)
+{
+	return shr_list;
+}
+
+
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
 /* test checksumcalc 

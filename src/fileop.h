@@ -19,4 +19,5 @@ void file_recheck_callback(int signo);
 int file_do(char *shrdir);
 
 void file_new_set_callback(void (*func)(FileNode *, int));
+FileNode **file_get_shared(void);
 #endif

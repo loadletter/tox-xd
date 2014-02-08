@@ -9,6 +9,78 @@
 static int group_chat_number = -1;
 static Tox *group_messenger;
 
+/* START COMMANDS */
+#define MAX_ARGS_SIZE 20
+#define MAX_ARGS_NUM 3
+static void cmd_invite(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
+{
+	if(group_chat_number != -1)
+	{
+		int rc = tox_invite_friend(m, friendnum, group_chat_number);
+		if(rc == -1)
+			yerr("Failed to invite friend n°%i to groupchat n°%i", friendnum, group_chat_number);
+	}		
+}
+
+static void cmd_help(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
+{
+	char helpstr[] = "No helping!";
+	tox_send_message(m, friendnum, (uint8_t *) helpstr, strlen(helpstr) + 1);
+}
+
+struct cmd_func
+{
+	const char *name;
+	void (*func)(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE]);
+};
+
+#define COMMAND_NUM 2
+static struct cmd_func bot_commands[] = {
+	{"invite", cmd_invite},
+	{"help", cmd_help}
+};
+
+/* Parses input command and puts args into arg array. 
+   Returns number of arguments on success, -1 on failure. */
+static int parse_command(char *cmd, char (*args)[MAX_ARGS_SIZE])
+{
+	int num_args = 0;
+	int cmd_end = FALSE;    // flags when we get to the end of cmd
+	char *end;               // points to the end of the current arg
+
+	while (!cmd_end && num_args < MAX_ARGS_NUM)
+	{
+		end = strchr(cmd, ' ');
+		cmd_end = end == NULL;
+		if (!cmd_end)
+			*end++ = '\0';    /* mark end of current argument */
+		/* Copy from start of current arg to where we just inserted the null byte */
+		strcpy(args[num_args++], cmd);
+		cmd = end;
+	}
+	
+	return num_args;
+}
+
+void execute(Tox *m, char *cmd, int friendnum)
+{
+	char args[MAX_ARGS_NUM][MAX_ARGS_SIZE];
+	memset(args, 0, sizeof(args));
+	int num_args = parse_command(cmd, args);
+	int i;
+
+	for (i = 0; i < COMMAND_NUM; ++i)
+	{
+		if (strcmp(args[0], bot_commands[i].name) == 0)
+		{
+			(bot_commands[i].func)(m, friendnum, num_args - 1, args);
+			return;
+		}
+	}
+}
+/* END COMMANDS */
+
+
 int group_chat_init(Tox *m)
 {
 	group_messenger = m;
@@ -45,14 +117,7 @@ void on_message(Tox *m, int friendnum, uint8_t *string, uint16_t length, void *u
 	
 	ydebug("Message from friend n°%i [%s]: %s", friendnum, fnick, string);
 	
-	/* TODO: add function to parse commands */
-	if(strcmp((char *) string, "invite") == 0 && group_chat_number != -1)
-	{
-		rc = tox_invite_friend(m, friendnum, group_chat_number);
-		if(rc == -1)
-			yerr("Failed to invite friend n°%i [%s] to groupchat n°%i", friendnum, fnick, group_chat_number);
-	}
-	
+	execute(m, (char *) string, friendnum);
 }
 
 void on_new_file(FileNode *fn, int packn)
