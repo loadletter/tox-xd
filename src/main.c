@@ -6,10 +6,12 @@
 
 #include "misc.h"
 #include "fileop.h"
+#include "filesend.h"
 #include "conf.h"
 #include "callbacks.h"
 
-#define DHTSERVERS "/tmp/DHTservers"
+#define DHTSERVERS_PATH "/tmp/DHTservers"
+#define TOXDATA_PATH "/tmp/toxdata"
 
 static volatile sig_atomic_t main_loop_running = TRUE;
 
@@ -29,7 +31,7 @@ static void toxconn_do(Tox *m)
 	{
 		if (!conn_err)
 		{
-			conn_err = init_connection(m, DHTSERVERS);
+			conn_err = init_connection(m, DHTSERVERS_PATH);
 			yinfo("Establishing connection...");
 				
 			if(conn_err)
@@ -120,6 +122,7 @@ int main(void)
 	sigaction(SIGTERM, &sigint_term, NULL);
 	
 	Tox *m = toxconn_init(FALSE);
+	toxdata_load(m, TOXDATA_PATH);
 	printownid(m);
 		
 	while(main_loop_running)
@@ -131,6 +134,8 @@ int main(void)
 	
 	ywarn("SIGINT/SIGTERM received, terminating...");
 	
+	file_transfers_close();
+	toxdata_store(m, TOXDATA_PATH);
 	tox_kill(m);
 	
 	return 0;

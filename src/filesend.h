@@ -30,5 +30,6 @@ enum {
 	FILESEND_ERR_FILEIO,
 	FILESEND_ERR
 };
-	
+
+void file_transfers_close(void);
 #endif
