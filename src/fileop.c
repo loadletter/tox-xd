@@ -16,11 +16,11 @@
 #define HASHING_BUFSIZE 64 * 1024 /* make it bigger? */
 #define SHRDIR_MAX_DESCRIPTORS 6
 
-FileNode **shr_list = NULL;
-uint shr_list_len = 0;
-FileNode **new_list = NULL;
-uint new_list_len = 0;
-volatile sig_atomic_t file_recheck = FALSE;
+static FileNode **shr_list = NULL;
+static uint shr_list_len = 0;
+static FileNode **new_list = NULL;
+static uint new_list_len = 0;
+static volatile sig_atomic_t file_recheck = FALSE;
 
 static void (*file_new_c)(FileNode *, int) = NULL;
 
