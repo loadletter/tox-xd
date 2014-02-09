@@ -13,6 +13,8 @@ static Tox *group_messenger;
 /* START COMMANDS */
 #define MAX_ARGS_SIZE 20
 #define MAX_ARGS_NUM 3
+#define	SYNTAX_ERR_MSG "Invalid syntax!"
+#define NOTFND_ERR_MSG "Pack number not found"
 static void cmd_invite(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
 {
 	if(group_chat_number != -1)
@@ -31,31 +33,52 @@ static void cmd_help(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 
 static void cmd_info(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
 {
-	char formatstr[] = "\n Pack Info for Pack #%i:\n\
+	const char formatstr[] = "\n Pack Info for Pack #%i:\n\
  Filename       %s\n\
  Filesize       %lu [%s]\n\
  Last Modified  %s GMT\n\
  sha256sum      %s\n\
  md5sum         %s\n\
- crc32          %s";
+ crc32          %.2X";
 	
 	/* formatstring + packn + filename + (size + numan_size) + gmtime + sha256sum + md5sum + crc32 */
 	char buf[sizeof(formatstr) + 20 + PATH_MAX + 28 + 26 + 64 + 32 + 8];
-	char tmpbuf[65];
+	char hu_size[8];
+	FileNode *fn;
 	FileNode **fnode = file_get_shared();
 	int fnode_num = file_get_shared_len();
-	char *sha256, *md5;
-		
-	//TODO
+	char *sha256, *md5, *timestr;
+	int rc;
 	
-	/* gmtime(fnode[i]->mtime)
-	sha256 = human_readable_id(fnode[i]->info->sha256, 32);
-	md5 = human_readable_id(fnode[i]->info->md5, 16);
-	...
-	...
+	if(argc != 1)
+	{
+		tox_send_message(m, friendnum, (uint8_t *) SYNTAX_ERR_MSG, strlen(SYNTAX_ERR_MSG) + 1);
+		return;
+	}
+
+	int packn = atoi(argv[1]);
+	if((packn == 0 && strcmp(argv[1], "0") != 0) || packn > fnode_num)
+	{
+		tox_send_message(m, friendnum, (uint8_t *) NOTFND_ERR_MSG, strlen(NOTFND_ERR_MSG) + 1);
+		return;
+	}
+	
+	fn = fnode[packn];
+	sha256 = human_readable_id(fn->info->sha256, 32);
+	md5 = human_readable_id(fn->info->md5, 16);
+	human_readable_filesize(hu_size, fn->size);
+	timestr = asctime(gmtime(&fn->mtime));
+	
+	rc = snprintf(buf, sizeof(buf), formatstr, packn, gnu_basename(fn->file), fn->size,
+			hu_size, timestr, sha256, md5, fn->info->crc32);
+	
+	if(rc < 0 || tox_send_message(m, friendnum, (uint8_t *) buf, rc + 1) == -1)
+	{
+		yerr("Failed to send info msg to friend n°%i", friendnum);
+	}
+
 	free(md5);
 	free(sha256);
-	*/
 }
 
 struct cmd_func
@@ -64,10 +87,11 @@ struct cmd_func
 	void (*func)(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE]);
 };
 
-#define COMMAND_NUM 2
+#define COMMAND_NUM 3
 static struct cmd_func bot_commands[] = {
 	{"invite", cmd_invite},
-	{"help", cmd_help}
+	{"help", cmd_help},
+	{"info", cmd_info}
 };
 
 /* Parses input command and puts args into arg array. 
