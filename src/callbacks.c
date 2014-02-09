@@ -57,7 +57,7 @@ static void cmd_info(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 	}
 
 	int packn = atoi(argv[1]);
-	if((packn == 0 && strcmp(argv[1], "0") != 0) || packn > fnode_num)
+	if((packn == 0 && strcmp(argv[1], "0") != 0) || packn < 0 || packn > fnode_num)
 	{
 		tox_send_message(m, friendnum, (uint8_t *) NOTFND_ERR_MSG, strlen(NOTFND_ERR_MSG) + 1);
 		return;
