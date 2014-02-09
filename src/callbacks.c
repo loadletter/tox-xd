@@ -1,3 +1,4 @@
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -26,6 +27,35 @@ static void cmd_help(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 {
 	char helpstr[] = "No helping!";
 	tox_send_message(m, friendnum, (uint8_t *) helpstr, strlen(helpstr) + 1);
+}
+
+static void cmd_info(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
+{
+	char formatstr[] = "\n Pack Info for Pack #%i:\n\
+ Filename       %s\n\
+ Filesize       %lu [%s]\n\
+ Last Modified  %s GMT\n\
+ sha256sum      %s\n\
+ md5sum         %s\n\
+ crc32          %s";
+	
+	/* formatstring + packn + filename + (size + numan_size) + gmtime + sha256sum + md5sum + crc32 */
+	char buf[sizeof(formatstr) + 20 + PATH_MAX + 28 + 26 + 64 + 32 + 8];
+	char tmpbuf[65];
+	FileNode **fnode = file_get_shared();
+	int fnode_num = file_get_shared_len();
+	char *sha256, *md5;
+		
+	//TODO
+	
+	/* gmtime(fnode[i]->mtime)
+	sha256 = human_readable_id(fnode[i]->info->sha256, 32);
+	md5 = human_readable_id(fnode[i]->info->md5, 16);
+	...
+	...
+	free(md5);
+	free(sha256);
+	*/
 }
 
 struct cmd_func

@@ -285,6 +285,10 @@ FileNode **file_get_shared(void)
 {
 	return shr_list;
 }
+int file_get_shared_len(void)
+{
+	return shr_list_len;
+}
 
 
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
