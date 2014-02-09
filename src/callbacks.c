@@ -6,6 +6,7 @@
 
 #include "misc.h"
 #include "fileop.h"
+#include "filesend.h"
 
 static int group_chat_number = -1;
 static Tox *group_messenger;
@@ -81,17 +82,64 @@ static void cmd_info(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 	free(sha256);
 }
 
+static void cmd_send(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
+{
+	FileNode **fnode = file_get_shared();
+	int fnode_num = file_get_shared_len();
+	int rc;
+	
+	if(argc != 1)
+	{
+		tox_send_message(m, friendnum, (uint8_t *) SYNTAX_ERR_MSG, strlen(SYNTAX_ERR_MSG) + 1);
+		return;
+	}
+
+	int packn = atoi(argv[1]);
+	if((packn == 0 && strcmp(argv[1], "0") != 0) || packn < -1 || packn > fnode_num)
+	{
+		tox_send_message(m, friendnum, (uint8_t *) NOTFND_ERR_MSG, strlen(NOTFND_ERR_MSG) + 1);
+		return;
+	}
+	
+	if(packn == -1)
+	{
+		//TODO: send list
+		yerr("Uninplemented");
+		return;
+	}
+	
+	rc = file_sender_new(friendnum, fnode[packn], m);
+	switch(rc)
+	{
+		case FILESEND_OK:
+			yinfo("Sending file request to friend n°%i: %s", friendnum, fnode[packn]->file);
+			break;
+		case FILESEND_ERR_FILEIO:
+			yerr("I/O Error accessing file for friend n°%i: %s", friendnum, fnode[packn]->file);
+			break;
+		case FILESEND_ERR_FULL:
+			yerr("File queue full, could not send to friend n°%i: %s", friendnum, fnode[packn]->file);
+			break;
+		case FILESEND_ERR_SENDING:
+			yerr("Error creating new file request for friend n°%i: %s", friendnum, fnode[packn]->file);
+			break;
+		default:
+			yerr("Error sending file request to friend n°%i: %s", friendnum, fnode[packn]->file);
+	}
+}
+
 struct cmd_func
 {
 	const char *name;
 	void (*func)(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE]);
 };
 
-#define COMMAND_NUM 3
+#define COMMAND_NUM 4
 static struct cmd_func bot_commands[] = {
 	{"invite", cmd_invite},
 	{"help", cmd_help},
-	{"info", cmd_info}
+	{"info", cmd_info},
+	{"send", cmd_send}
 };
 
 /* Parses input command and puts args into arg array. 

@@ -9,7 +9,7 @@
 uint8_t file_senders_index;
 FileSender file_senders[FSEND_PIECE_SIZE];
 
-void file_sender_close(int i)
+static void file_sender_close(int i)
 {
 	fclose(file_senders[i].file);
 	memset(&file_senders[i], 0, sizeof(FileSender));
@@ -24,7 +24,6 @@ void file_sender_close(int i)
 
 	file_senders_index = j;
 }
-
 
 void file_senders_do(Tox *m)
 {

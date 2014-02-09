@@ -32,4 +32,7 @@ enum {
 };
 
 void file_transfers_close(void);
+int file_sender_new(int friendnum, FileNode *fileinfo, Tox *m);
+void file_senders_do(Tox *m);
+
 #endif

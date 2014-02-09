@@ -129,7 +129,8 @@ int main(void)
 	{
 		file_do("./");
 		toxconn_do(m);
-		usleep(20 * 1000);
+		file_senders_do(m);
+		usleep(5 * 1000);
 	}
 	
 	ywarn("SIGINT/SIGTERM received, terminating...");
