@@ -69,6 +69,7 @@ static void cmd_info(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 	md5 = human_readable_id(fn->info->md5, 16);
 	human_readable_filesize(hu_size, fn->size);
 	timestr = asctime(gmtime(&fn->mtime));
+	timestr[strlen(timestr) - 1] = '\0'; /* remove newline that asctime adds */
 	
 	rc = snprintf(buf, sizeof(buf), formatstr, packn, gnu_basename(fn->file), fn->size,
 			hu_size, timestr, sha256, md5, fn->info->crc32);
