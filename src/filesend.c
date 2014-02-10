@@ -71,13 +71,38 @@ void file_senders_do(Tox *m)
 	}
 }
 
-int file_sender_new(int friendnum, FileNode *fileinfo, Tox *m)
+static FILE *file_list_create(FileNode **shrfiles, int filenum)
+{
+	FILE *listfile = tmpfile();
+	if(listfile == NULL)
+	{
+		perrlog("tmpfile");
+		return NULL:
+	}
+	
+	/* write stuff to file */
+}
+
+int file_sender_new(int friendnum, FileNode **shrfiles, int filenum, Tox *m)
 {
 	if (file_senders_index >= (FSEND_MAX_FILES - 1))
 	{
 		return FILESEND_ERR_FULL;
 	}
-
+	
+	if(filenum < 0)
+	{
+		file_to_send = file_list_create(shrfiles, filenum);
+		/* if null return FILEIO */
+		/* ftell() to get filesize */
+		/* fseek() to the beginning */
+		//TODO
+	}
+	else
+	{
+		//TODO
+		/* adapt code below */
+	}
 
 	FILE *file_to_send = fopen(fileinfo->file, "r");
 	if (file_to_send == NULL)
