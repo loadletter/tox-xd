@@ -88,8 +88,8 @@ int file_sender_new(int friendnum, FileNode *fileinfo, Tox *m)
 
 	uint64_t filesize = (uint64_t) fileinfo->size;
 	char *filename = gnu_basename(fileinfo->file);
-
-	int filenum = tox_new_file_sender(m, friendnum, filesize, (uint8_t *) filename, strlen(filename));
+	
+	int filenum = tox_new_file_sender(m, friendnum, filesize, (uint8_t *) filename, strlen(filename) + 1); /* need to include terminator in the filaname */
 	if (filenum == -1)
 	{
 		return FILESEND_ERR_SENDING;
