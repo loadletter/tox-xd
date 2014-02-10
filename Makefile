@@ -33,7 +33,7 @@ $(OBJDIR)/misc.o: src/misc.c $(OBJDIR)/ylog.o
 $(OBJDIR)/fileop.o: src/fileop.c $(OBJDIR)/crc32.o $(OBJDIR)/md5.o $(OBJDIR)/sha256.o
 	$(CC) $(CFLAGS) $< -c -o $@
 
-$(OBJDIR)/filesend.o: src/filesend.c
+$(OBJDIR)/filesend.o: src/filesend.c $(OBJDIR)/fileop.o
 	$(CC) $(CFLAGS) $< -c -o $@
 
 $(OBJDIR)/conf.o: src/conf.c $(OBJDIR)/misc.o

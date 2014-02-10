@@ -7,7 +7,7 @@
 #include "filesend.h"
 
 uint8_t file_senders_index;
-FileSender file_senders[FSEND_PIECE_SIZE];
+FileSender file_senders[FSEND_MAX_FILES];
 
 static void file_sender_close(int i)
 {
@@ -71,16 +71,33 @@ void file_senders_do(Tox *m)
 	}
 }
 
-static FILE *file_list_create(FileNode **shrfiles, int filenum)
+static FILE *file_list_create()
 {
-	FILE *listfile = tmpfile();
+	FileNode **fnode = file_get_shared();
+	int fnode_len = file_get_shared_len();
+	char hu_size[8]; 
+	FILE *fp = tmpfile();
+	int i = 0;
+	
 	if(listfile == NULL)
 	{
 		perrlog("tmpfile");
-		return NULL:
+		return NULL;
 	}
 	
-	/* write stuff to file */
+	while(i < FSEND_MAX_FILES)
+		if(file_senders.active)
+			i++;
+	
+	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, i, FSEND_MAX_FILES);
+	
+	for(i = 0; i < fnode_len; i++)
+	{
+		human_readable_filesize(hu_size, fnode[i]->size);
+		fprintf(fp, "#%-10i [%s] %s\n", i, hu_size, gnu_basename(fnode[i]->file));
+	}
+	
+	return fp;
 }
 
 int file_sender_new(int friendnum, FileNode **shrfiles, int filenum, Tox *m)
