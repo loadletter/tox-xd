@@ -290,6 +290,30 @@ int file_get_shared_len(void)
 	return shr_list_len;
 }
 
+/*
+ * file format:
+ * put all predictable things in the beginning
+ * put filename last and without newline
+ * 
+FileNode *filenode_load(path)
+{
+	//TODO:
+	//read using fscanf all the file info
+	//read using fread the filename
+}
+int filenode_dump(FileNode *fnode, char *path)
+{
+	FILE *fp = fopen(path, "wb")
+	if(pf == NULL)
+	{
+		perrlog("fopen");
+		return -1;
+	}
+	
+	//TODO
+	 
+}
+*/
 
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
