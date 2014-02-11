@@ -6,8 +6,9 @@
 
 #include "filesend.h"
 
-uint8_t file_senders_index;
-FileSender file_senders[FSEND_MAX_FILES];
+static uint8_t file_senders_index;
+static FileSender file_senders[FSEND_MAX_FILES];
+char packlist_filename[] = "packlist.txt";
 
 static void file_sender_close(int i)
 {
@@ -33,8 +34,12 @@ void file_senders_do(Tox *m)
 	{
 		if (!file_senders[i].active)
 			continue;
-
-		uint8_t *pathname = (uint8_t *) file_senders[i].details->file;
+		
+		/* if fileinfo is NULL it's a packlist */
+		uint8_t *pathname = (uint8_t *) packlist_filename;
+		if(file_senders[i].details != NULL)
+			pathname = (uint8_t *) file_senders[i].details->file;
+		
 		uint8_t filenum = file_senders[i].filenum;
 		int friendnum = file_senders[i].friendnum;
 		FILE *fp = file_senders[i].file;
@@ -71,25 +76,25 @@ void file_senders_do(Tox *m)
 	}
 }
 
-static FILE *file_list_create()
+static FILE *file_list_create(void)
 {
 	FileNode **fnode = file_get_shared();
 	int fnode_len = file_get_shared_len();
 	char hu_size[8]; 
-	FILE *fp = tmpfile();
-	int i = 0;
+	int i, n = 0;
 	
-	if(listfile == NULL)
+	FILE *fp = tmpfile();
+	if(fp == NULL)
 	{
 		perrlog("tmpfile");
 		return NULL;
 	}
 	
-	while(i < FSEND_MAX_FILES)
-		if(file_senders.active)
-			i++;
+	for (i = 0; i < FSEND_MAX_FILES; ++i)
+		if(file_senders[i].active)
+			n++;
 	
-	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, i, FSEND_MAX_FILES);
+	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, n, FSEND_MAX_FILES);
 	
 	for(i = 0; i < fnode_len; i++)
 	{
@@ -100,36 +105,43 @@ static FILE *file_list_create()
 	return fp;
 }
 
-int file_sender_new(int friendnum, FileNode **shrfiles, int filenum, Tox *m)
+int file_sender_new(int friendnum, FileNode **shrfiles, int packn, Tox *m)
 {
+	FileNode *fileinfo = NULL;
+	FILE *file_to_send;
+	uint64_t filesize;
+	char *filename;
+	
 	if (file_senders_index >= (FSEND_MAX_FILES - 1))
 	{
 		return FILESEND_ERR_FULL;
 	}
 	
-	if(filenum < 0)
+	if(packn < 0)
 	{
-		file_to_send = file_list_create(shrfiles, filenum);
-		/* if null return FILEIO */
-		/* ftell() to get filesize */
-		/* fseek() to the beginning */
-		//TODO
+		/* create packlist */
+		file_to_send = file_list_create();
+		if(file_to_send == NULL)
+			return FILESEND_ERR_FILEIO;
+		
+		filesize = ftell(file_to_send);
+		fseek(file_to_send, 0, SEEK_SET);
+		filename = packlist_filename;
 	}
 	else
 	{
-		//TODO
-		/* adapt code below */
-	}
+		/* use existing file */
+		fileinfo = shrfiles[packn];
+		file_to_send = fopen(fileinfo->file, "r");
+		if (file_to_send == NULL)
+		{
+			perrlog("fopen");
+			return FILESEND_ERR_FILEIO;
+		}
 
-	FILE *file_to_send = fopen(fileinfo->file, "r");
-	if (file_to_send == NULL)
-	{
-		perrlog("fopen");
-		return FILESEND_ERR_FILEIO;
+		filesize = (uint64_t) fileinfo->size;
+		filename = gnu_basename(fileinfo->file);
 	}
-
-	uint64_t filesize = (uint64_t) fileinfo->size;
-	char *filename = gnu_basename(fileinfo->file);
 	
 	int filenum = tox_new_file_sender(m, friendnum, filesize, (uint8_t *) filename, strlen(filename) + 1); /* need to include terminator in the filaname */
 	if (filenum == -1)

@@ -102,30 +102,24 @@ static void cmd_send(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 		return;
 	}
 	
-	if(packn == -1)
-	{
-		//TODO: send list
-		yerr("Uninplemented");
-		return;
-	}
-	
-	rc = file_sender_new(friendnum, fnode[packn], m);
+	rc = file_sender_new(friendnum, fnode, packn, m);
+	char *fname = packn == -1 ? packlist_filename : fnode[packn]->file;
 	switch(rc)
 	{
 		case FILESEND_OK:
-			yinfo("Sending file request to friend n°%i: %s", friendnum, fnode[packn]->file);
+			yinfo("Sending file request to friend n°%i: %s", friendnum, fname);
 			break;
 		case FILESEND_ERR_FILEIO:
-			yerr("I/O Error accessing file for friend n°%i: %s", friendnum, fnode[packn]->file);
+			yerr("I/O Error accessing file for friend n°%i: %s", friendnum, fname);
 			break;
 		case FILESEND_ERR_FULL:
-			yerr("File queue full, could not send to friend n°%i: %s", friendnum, fnode[packn]->file);
+			yerr("File queue full, could not send to friend n°%i: %s", friendnum, fname);
 			break;
 		case FILESEND_ERR_SENDING:
-			yerr("Error creating new file request for friend n°%i: %s", friendnum, fnode[packn]->file);
+			yerr("Error creating new file request for friend n°%i: %s", friendnum, fname);
 			break;
 		default:
-			yerr("Error sending file request to friend n°%i: %s", friendnum, fnode[packn]->file);
+			yerr("Error sending file request to friend n°%i: %s", friendnum, fname);
 	}
 }
 

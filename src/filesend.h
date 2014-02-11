@@ -32,7 +32,7 @@ enum {
 };
 
 void file_transfers_close(void);
-int file_sender_new(int friendnum, FileNode *fileinfo, Tox *m);
+int file_sender_new(int friendnum, FileNode **shrfiles, int packn, Tox *m);
 void file_senders_do(Tox *m);
-
+extern char packlist_filename[];
 #endif
