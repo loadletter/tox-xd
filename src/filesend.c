@@ -94,7 +94,7 @@ static FILE *file_list_create(void)
 		if(file_senders[i].active)
 			n++;
 	
-	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, n, FSEND_MAX_FILES);
+	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, FSEND_MAX_FILES - n, FSEND_MAX_FILES);
 	
 	for(i = 0; i < fnode_len; i++)
 	{
