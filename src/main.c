@@ -86,6 +86,9 @@ static Tox *toxconn_init(int ipv4)
 
 	tox_set_name(m, (uint8_t *) "Cool bot", sizeof("Cool bot"));
 	
+	const char status_msg[] = "(Send me a message with the word 'help')";
+	tox_set_status_message(m, (uint8_t *) status_msg, sizeof(status_msg));
+	
 	group_chat_init(m);
 	
 	file_new_set_callback(on_new_file);

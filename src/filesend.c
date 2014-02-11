@@ -95,7 +95,7 @@ static FILE *file_list_create(void)
 			n++;
 	
 	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, FSEND_MAX_FILES - n, FSEND_MAX_FILES);
-	
+	fprintf(fp, "** #pack_num  [size]  filename **\n");
 	for(i = 0; i < fnode_len; i++)
 	{
 		human_readable_filesize(hu_size, fnode[i]->size);

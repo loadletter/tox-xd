@@ -28,7 +28,11 @@ static void cmd_invite(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SI
 
 static void cmd_help(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
 {
-	char helpstr[] = "No helping!";
+	char helpstr[] = "\n Supported commands:\n\
+ invite          Join the groupchat where new files get announced\n\
+ send -1         Request a list of all the files available\n\
+ send x          Request the file (replace x with pack number)\n\
+ info x          Request details about the file (replace x with pack number)";
 	tox_send_message(m, friendnum, (uint8_t *) helpstr, strlen(helpstr) + 1);
 }
 
