@@ -294,6 +294,13 @@ int file_get_shared_len(void)
  * file format:
  * put all predictable things in the beginning
  * put filename last and without newline
+ * example:
+ * crc32
+ * md5
+ * sha256
+ * mtime
+ * size
+ * file
  * 
 FileNode *filenode_load(path)
 {
@@ -301,19 +308,38 @@ FileNode *filenode_load(path)
 	//read using fscanf all the file info
 	//read using fread the filename
 }
+*/
 int filenode_dump(FileNode *fnode, char *path)
 {
-	FILE *fp = fopen(path, "wb")
-	if(pf == NULL)
+	char *md5, *sha256;
+	FILE *fp = fopen(path, "wb");
+	if(fp == NULL)
 	{
 		perrlog("fopen");
 		return -1;
 	}
 	
-	//TODO
-	 
+	md5 = human_readable_id(fnode->info->md5, 16);
+	sha256 = human_readable_id(fnode->info->sha256, 32);
+	
+	fprintf(fp, "%.2X\n", fnode->info->crc32);
+	fprintf(fp, "%s\n", md5);
+	fprintf(fp, "%s\n", sha256);
+	fprintf(fp, "%lu\n", fnode->mtime);
+	fprintf(fp, "%lu\n", fnode->size);
+	fprintf(fp, "%s", fnode->file);
+	
+	free(md5);
+	free(sha256);
+	
+	if(fclose(fp) != 0)
+	{
+		perrlog("fclose");
+		return -1;
+	}
+	return 0;
 }
-*/
+
 
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
