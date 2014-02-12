@@ -301,14 +301,71 @@ int file_get_shared_len(void)
  * mtime
  * size
  * file
- * 
-FileNode *filenode_load(path)
+ */
+FileNode *filenode_load(char *path)
 {
-	//TODO:
-	//read using fscanf all the file info
-	//read using fread the filename
+	char md5[33], sha256[65], filename[PATH_MAX + 1];
+	char *pos;
+
+	FILE *fp = fopen(path, "wb");
+	if(fp == NULL)
+	{
+		perrlog("fopen");
+		return NULL;
+	}
+	
+	FileNode *fn = malloc(sizeof(FileNode));
+	if(fn == NULL)
+	{
+		perrlog("malloc");
+		return NULL;
+	}
+	
+	fn->info = malloc(sizeof(FileHash));
+	if(fn->info == NULL)
+	{
+		perrlog("malloc");
+		free(fn);
+		return NULL;
+	}
+	
+	if(fscanf(fp, "%u\n", &fn->info->crc32) != 1)
+		goto parserr;
+	if(fscanf(fp, "%32s\n", md5) != 1)
+		goto parserr;
+	if(fscanf(fp, "%64s\n", sha256) != 1)
+		goto parserr;
+	if(fscanf(fp, "%lld\n", (long long * ) &fn->mtime) != 1)
+		goto parserr;
+	if(fscanf(fp, "%lld\n", (long long * ) &fn->size) != 1)
+		goto parserr;
+		
+	fread(filename, 1, PATH_MAX, fp);
+	if(ferror(fp))
+	{
+		perror("fread");
+		goto parserr;
+	}
+	
+	if(feof(fp))
+	{
+		int i;
+		pos = md5;
+		for (i = 0; i < 32; ++i, pos += 2)
+			sscanf(pos, "%2hhx", &fn->info->md5[i]);
+		pos = sha256;
+		for (i = 0; i < 64; ++i, pos += 2)
+			sscanf(pos, "%2hhx", &fn->info->sha256[i]);
+		return fn;
+	}
+	
+	parserr:
+		yerr("Error parsing: %s", path);
+		free(fn->info);
+		free(fn);
+		return NULL;
 }
-*/
+
 int filenode_dump(FileNode *fnode, char *path)
 {
 	char *md5, *sha256;
@@ -322,11 +379,11 @@ int filenode_dump(FileNode *fnode, char *path)
 	md5 = human_readable_id(fnode->info->md5, 16);
 	sha256 = human_readable_id(fnode->info->sha256, 32);
 	
-	fprintf(fp, "%.2X\n", fnode->info->crc32);
+	fprintf(fp, "%u\n", fnode->info->crc32);
 	fprintf(fp, "%s\n", md5);
 	fprintf(fp, "%s\n", sha256);
-	fprintf(fp, "%lu\n", fnode->mtime);
-	fprintf(fp, "%lu\n", fnode->size);
+	fprintf(fp, "%lld\n", (long long) fnode->mtime);
+	fprintf(fp, "%lld\n", (long long) fnode->size);
 	fprintf(fp, "%s", fnode->file);
 	
 	free(md5);
