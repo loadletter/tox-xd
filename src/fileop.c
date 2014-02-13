@@ -7,6 +7,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <time.h>
 #include <ftw.h>
 #include "fileop.h"
@@ -405,6 +406,7 @@ int directory_count(char *path)
 	DIR * dirp;
 	struct dirent * entry;
 	int count = 0;
+	int i, digitflag;
 	
 	dirp = opendir(path);
 	if(dirp == NULL)
@@ -415,8 +417,21 @@ int directory_count(char *path)
 	
 	while((entry = readdir(dirp)) != NULL)
 	{
+		digitflag = TRUE;
 		if (entry->d_type == DT_REG) /* If the entry is a regular file */
-			count++;
+		{
+			/* check that there is no extraneus file in the cachedir */
+			for(i=0; i<strlen(entry->d_name); i++)
+				if(!isdigit(entry->d_name[i]))
+				{
+					digitflag = FALSE;
+					ywarn("Warning, unknown file in cache dir, skipping: %s", entry->d_name);
+					break;
+				}
+			
+			if(digitflag)
+				count++;
+		}
 	}
 	
 	if(closedir(dirp) != 0);
@@ -432,7 +447,7 @@ int filenode_load_fromdir(char *cachedir)
 {
 	FileNode *fn;
 	char pathbuf[PATH_MAX + 20];
-	int i;
+	int i = 0;
 	
 	int dircount = directory_count(cachedir);
 	if(dircount == 0)
