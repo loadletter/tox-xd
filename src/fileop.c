@@ -428,6 +428,42 @@ int directory_count(char *path)
 	return count;
 }
 
+int filenode_load_fromdir(char *cachedir)
+{
+	FileNode *fn;
+	char pathbuf[PATH_MAX + 20];
+	int i;
+	
+	int dircount = directory_count(cachedir);
+	if(dircount == 0)
+		return 0;
+	if(dircount < 0)
+		return -1;
+	
+	while(i < dircount)
+	{
+		snprintf(pathbuf, sizeof(pathbuf), "%s/%i", cachedir, i);
+		
+		if(access(pathbuf, R_OK|W_OK))
+		{
+			fn = filenode_load(pathbuf);
+			if(fn != NULL)
+			{
+				shr_list = realloc(shr_list, sizeof(FileNode *) * (shr_list_len + 1));
+				if(shr_list == NULL)
+				{
+					perrlog("realloc");
+					return -1;
+				}
+				shr_list[shr_list_len] = fn;
+			}
+		}
+		
+		i++;
+	}
+	
+}
+
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
 /* test checksumcalc 
