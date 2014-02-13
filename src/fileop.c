@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -340,7 +341,9 @@ FileNode *filenode_load(char *path)
 	if(fscanf(fp, "%lld\n", (long long * ) &fn->size) != 1)
 		goto parserr;
 		
-	fread(filename, 1, PATH_MAX, fp);
+	int rc = fread(filename, 1, PATH_MAX, fp);
+	ydebug("Read: %i", rc); //DEBUG
+	
 	if(ferror(fp))
 	{
 		perror("fread");
@@ -397,6 +400,33 @@ int filenode_dump(FileNode *fnode, char *path)
 	return 0;
 }
 
+int directory_count(char *path)
+{
+	DIR * dirp;
+	struct dirent * entry;
+	int count = 0;
+	
+	dirp = opendir(path);
+	if(dirp == NULL)
+	{
+		perrlog("opendir");
+		return -1;
+	}
+	
+	while((entry = readdir(dirp)) != NULL)
+	{
+		if (entry->d_type == DT_REG) /* If the entry is a regular file */
+			count++;
+	}
+	
+	if(closedir(dirp) != 0);
+	{
+		perrlog("closedir");
+		return -1;
+	}
+	
+	return count;
+}
 
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
 
