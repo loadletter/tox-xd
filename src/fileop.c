@@ -456,12 +456,14 @@ int filenode_load_fromdir(char *cachedir)
 					return -1;
 				}
 				shr_list[shr_list_len] = fn;
+				shr_list_len++;
 			}
 		}
 		
 		i++;
 	}
 	
+	return i;
 }
 
 /* TODO: realloc return should be different than the passed variable, to prevent memory leaks if it becomes null */
