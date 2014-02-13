@@ -30,7 +30,4 @@ Keep number of downloads in memory and write them down when closing?
 hash: (speed on single core sempron: 2.2ms for 64kb block)
 
 TODO:
-- move existing callbacks to another source file
-- implement all the needed callbacks
-- implement cache data storage
-
+- currently if a file is deleted from the middle the order of the next packs becomes messed up
