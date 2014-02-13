@@ -489,7 +489,7 @@ int filenode_load_fromdir(char *cachedir)
 	while(i < dircount)
 	{
 		snprintf(pathbuf, sizeof(pathbuf), "%s/%i", cachedir, i);
-		
+		ydebug("%i - %i", i, shr_list_len);
 		if(access(pathbuf, R_OK|W_OK) != -1)
 		{
 			fn = filenode_load(pathbuf);
