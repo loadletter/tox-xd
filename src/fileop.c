@@ -377,10 +377,10 @@ static FileNode *filenode_load(char *path)
 	{
 		int i;
 		pos = md5;
-		for (i = 0; i < 16; ++i, pos += 2)
+		for (i = 0; i < sizeof(fn->info->md5); ++i, pos += 2)
 			sscanf(pos, "%2hhx", &fn->info->md5[i]);
 		pos = sha256;
-		for (i = 0; i < 32; ++i, pos += 2)
+		for (i = 0; i < sizeof(fn->info->sha256); ++i, pos += 2)
 			sscanf(pos, "%2hhx", &fn->info->sha256[i]);
 		
 		fn->file = strdup(filename);
