@@ -328,6 +328,7 @@ static FileNode *filenode_load(char *path)
 	if(fn == NULL)
 	{
 		perrlog("malloc");
+		fclose(fp);
 		return NULL;
 	}
 	
@@ -335,6 +336,7 @@ static FileNode *filenode_load(char *path)
 	if(fn->info == NULL)
 	{
 		perrlog("malloc");
+		fclose(fp);
 		free(fn);
 		return NULL;
 	}
@@ -351,7 +353,7 @@ static FileNode *filenode_load(char *path)
 		goto parserr;
 		
 	int rc = fread(filename, 1, PATH_MAX, fp);
-	ydebug("Read: %i", rc); //DEBUG
+	filename[rc] = '\0';
 	if(access(filename, R_OK) == -1)
 	{
 		ywarn("Could not access file, removing cache entry for: %s", filename);
@@ -361,6 +363,7 @@ static FileNode *filenode_load(char *path)
 		}
 		free(fn->info);
 		free(fn);
+		fclose(fp);
 		return NULL;
 	}
 	
@@ -374,16 +377,25 @@ static FileNode *filenode_load(char *path)
 	{
 		int i;
 		pos = md5;
-		for (i = 0; i < 32; ++i, pos += 2)
+		for (i = 0; i < 16; ++i, pos += 2)
 			sscanf(pos, "%2hhx", &fn->info->md5[i]);
 		pos = sha256;
-		for (i = 0; i < 64; ++i, pos += 2)
+		for (i = 0; i < 32; ++i, pos += 2)
 			sscanf(pos, "%2hhx", &fn->info->sha256[i]);
+		
+		fn->file = strdup(filename);
+		if(fn->file == NULL)
+		{
+			perrlog("strdup");
+			goto parserr;
+		}
+		fclose(fp);
 		return fn;
 	}
 	
 	parserr:
 		yerr("Error parsing: %s", path);
+		fclose(fp);
 		free(fn->info);
 		free(fn);
 		return NULL;
