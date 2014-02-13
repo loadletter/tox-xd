@@ -344,6 +344,17 @@ FileNode *filenode_load(char *path)
 		
 	int rc = fread(filename, 1, PATH_MAX, fp);
 	ydebug("Read: %i", rc); //DEBUG
+	if(access(filename, R_OK) == -1)
+	{
+		ywarn("Could not access file, removing cache entry for: %s", filename);
+		if(unlink(path) == -1)
+		{
+			perrlog("unlink");
+		}
+		free(fn->info);
+		free(fn);
+		return NULL;
+	}
 	
 	if(ferror(fp))
 	{
@@ -425,7 +436,7 @@ int directory_count(char *path)
 				if(!isdigit(entry->d_name[i]))
 				{
 					digitflag = FALSE;
-					ywarn("Warning, unknown file in cache dir, skipping: %s", entry->d_name);
+					ywarn("Unknown file in cache dir, skipping: %s", entry->d_name);
 					break;
 				}
 			
@@ -459,7 +470,7 @@ int filenode_load_fromdir(char *cachedir)
 	{
 		snprintf(pathbuf, sizeof(pathbuf), "%s/%i", cachedir, i);
 		
-		if(access(pathbuf, R_OK|W_OK))
+		if(access(pathbuf, R_OK|W_OK) != -1)
 		{
 			fn = filenode_load(pathbuf);
 			if(fn != NULL)
