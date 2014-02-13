@@ -12,6 +12,7 @@
 
 #define DHTSERVERS_PATH "/tmp/DHTservers"
 #define TOXDATA_PATH "/tmp/toxdata"
+#define CACHEDIR_PATH "/tmp/test"
 
 static volatile sig_atomic_t main_loop_running = TRUE;
 
@@ -127,10 +128,13 @@ int main(void)
 	Tox *m = toxconn_init(FALSE);
 	toxdata_load(m, TOXDATA_PATH);
 	printownid(m);
-		
+	
+	int rc = filenode_load_fromdir(CACHEDIR_PATH);
+	yinfo("Loaded %i files from cache", rc);
+	
 	while(main_loop_running)
 	{
-		file_do("./");
+		file_do("./", CACHEDIR_PATH);
 		toxconn_do(m);
 		file_senders_do(m);
 		usleep(5 * 1000);

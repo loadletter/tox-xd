@@ -23,8 +23,10 @@ static uint shr_list_len = 0;
 static FileNode **new_list = NULL;
 static uint new_list_len = 0;
 static volatile sig_atomic_t file_recheck = FALSE;
-
+/* callback for new file */
 static void (*file_new_c)(FileNode *, int) = NULL;
+/* prototypes */
+static int filenode_dump(FileNode *fnode, char *path);
 
 int file_checksumcalc_noblock(FileHash *dest, char *filename)
 {
@@ -193,7 +195,7 @@ void file_recheck_callback(int signo)
  * 
  * If the hashing flag was set, take it's number and start the hashing,
  * when the entire file has been read or an error occurs clear the hashing flag.*/
- int file_do(char *shrdir)
+ int file_do(char *shrdir, char *cachedir)
 {
 	int i, t, rc;
 	int n = -1;
@@ -265,9 +267,15 @@ void file_recheck_callback(int signo)
 			if(new_list_len == 0)
 				file_recheck = FALSE;
 			
+			/* execute callback for new file*/
 			if(file_new_c != NULL)
 				file_new_c(shr_list[last], last);
-			ydebug("Hash: %i - %s", last, shr_list[last]->file);
+			yinfo("Hash: %i - %s", last, shr_list[last]->file);
+			
+			/* write filenode to cache */
+			char cachepath[PATH_MAX + 20];
+			snprintf(cachepath, sizeof(cachepath), "%s/%i", cachedir, last);
+			filenode_dump(shr_list[last], cachepath);
 		}
 		
 		if(rc < 0)
@@ -304,12 +312,12 @@ int file_get_shared_len(void)
  * size
  * file
  */
-FileNode *filenode_load(char *path)
+static FileNode *filenode_load(char *path)
 {
 	char md5[33], sha256[65], filename[PATH_MAX + 1];
 	char *pos;
 
-	FILE *fp = fopen(path, "wb");
+	FILE *fp = fopen(path, "rb");
 	if(fp == NULL)
 	{
 		perrlog("fopen");
@@ -381,7 +389,7 @@ FileNode *filenode_load(char *path)
 		return NULL;
 }
 
-int filenode_dump(FileNode *fnode, char *path)
+static int filenode_dump(FileNode *fnode, char *path)
 {
 	char *md5, *sha256;
 	FILE *fp = fopen(path, "wb");
@@ -412,7 +420,7 @@ int filenode_dump(FileNode *fnode, char *path)
 	return 0;
 }
 
-int directory_count(char *path)
+static int directory_count(char *path)
 {
 	DIR * dirp;
 	struct dirent * entry;
@@ -445,7 +453,7 @@ int directory_count(char *path)
 		}
 	}
 	
-	if(closedir(dirp) != 0);
+	if(closedir(dirp) != 0)
 	{
 		perrlog("closedir");
 		return -1;
