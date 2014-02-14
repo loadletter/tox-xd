@@ -354,6 +354,7 @@ static FileNode *filenode_load(char *path)
 		
 	int rc = fread(filename, 1, PATH_MAX, fp);
 	filename[rc] = '\0';
+	/*
 	if(access(filename, R_OK) == -1)
 	{
 		ywarn("Could not access file, removing cache entry for: %s", filename);
@@ -366,7 +367,7 @@ static FileNode *filenode_load(char *path)
 		fclose(fp);
 		return NULL;
 	}
-	
+	*/
 	if(ferror(fp))
 	{
 		perror("fread");
