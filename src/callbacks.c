@@ -16,6 +16,9 @@ static Tox *group_messenger;
 #define MAX_ARGS_NUM 3
 #define	SYNTAX_ERR_MSG "Invalid syntax!"
 #define NOTFND_ERR_MSG "Pack number not found"
+#define NOTFND_F_MSG "Could not open requested file"
+#define QUEUEFULL_F_MSG "The queue is full, try later"
+#define SRVERR_F_MSG "Error sending file"
 static void cmd_invite(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE])
 {
 	if(group_chat_number != -1)
@@ -95,14 +98,14 @@ static void cmd_send(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 	
 	if(argc != 1)
 	{
-		tox_send_message(m, friendnum, (uint8_t *) SYNTAX_ERR_MSG, strlen(SYNTAX_ERR_MSG) + 1);
+		tox_send_message(m, friendnum, (uint8_t *) SYNTAX_ERR_MSG, sizeof(SYNTAX_ERR_MSG));
 		return;
 	}
 
 	int packn = atoi(argv[1]);
 	if((packn == 0 && strcmp(argv[1], "0") != 0) || packn < -1 || packn >= fnode_num)
 	{
-		tox_send_message(m, friendnum, (uint8_t *) NOTFND_ERR_MSG, strlen(NOTFND_ERR_MSG) + 1);
+		tox_send_message(m, friendnum, (uint8_t *) NOTFND_ERR_MSG, sizeof(NOTFND_ERR_MSG));
 		return;
 	}
 	
@@ -115,15 +118,19 @@ static void cmd_send(Tox *m, int friendnum, int argc, char (*argv)[MAX_ARGS_SIZE
 			break;
 		case FILESEND_ERR_FILEIO:
 			yerr("I/O Error accessing file for friend n°%i: %s", friendnum, fname);
+			tox_send_message(m, friendnum, (uint8_t *) NOTFND_F_MSG, sizeof(NOTFND_F_MSG));
 			break;
 		case FILESEND_ERR_FULL:
 			yerr("File queue full, could not send to friend n°%i: %s", friendnum, fname);
+			tox_send_message(m, friendnum, (uint8_t *) QUEUEFULL_F_MSG, sizeof(QUEUEFULL_F_MSG));
 			break;
 		case FILESEND_ERR_SENDING:
 			yerr("Error creating new file request for friend n°%i: %s", friendnum, fname);
+			tox_send_message(m, friendnum, (uint8_t *) SRVERR_F_MSG, sizeof(SRVERR_F_MSG));
 			break;
 		default:
 			yerr("Error sending file request to friend n°%i: %s", friendnum, fname);
+			tox_send_message(m, friendnum, (uint8_t *) SRVERR_F_MSG, sizeof(SRVERR_F_MSG));
 	}
 }
 
