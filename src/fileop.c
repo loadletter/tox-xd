@@ -149,6 +149,7 @@ static int file_walk_callback(const char *path, const struct stat *sptr, int typ
 			new_list[new_list_len]->info = NULL;
 			new_list[new_list_len]->mtime = sptr->st_mtime;
 			new_list[new_list_len]->size = sptr->st_size;
+			new_list[new_list_len]->exists = TRUE;
 			new_list_len++;
 		}
 	}
@@ -174,6 +175,25 @@ int file_walk_shared(char *shrdir)
 		file_recheck = FALSE;
 	
 	return rc; 
+}
+
+/* walks the current shared files and check if they still exist */
+void file_exists_shared(void)
+{
+	int i;
+	
+	for(i=0;i<shr_list_len;i++)
+	{
+		if(access(shr_list[i]->file, R_OK) == -1)
+		{
+			shr_list[i]->exists = FALSE;
+			ydebug("Removed non-existing file: %s", shr_list[i]->file);
+		}
+		else
+		{
+			shr_list[i]->exists = TRUE;
+		}
+	}
 }
 
 /* signal handler */
@@ -204,6 +224,7 @@ void file_recheck_callback(int signo)
 	
 	if(file_recheck && new_list_len == 0 && hashing == -1)
 	{
+		file_exists_shared();
 		file_walk_shared(shrdir);
 	}
 	
@@ -354,20 +375,7 @@ static FileNode *filenode_load(char *path)
 		
 	int rc = fread(filename, 1, PATH_MAX, fp);
 	filename[rc] = '\0';
-	/*
-	if(access(filename, R_OK) == -1)
-	{
-		ywarn("Could not access file, removing cache entry for: %s", filename);
-		if(unlink(path) == -1)
-		{
-			perrlog("unlink");
-		}
-		free(fn->info);
-		free(fn);
-		fclose(fp);
-		return NULL;
-	}
-	*/
+
 	if(ferror(fp))
 	{
 		perror("fread");
@@ -383,6 +391,9 @@ static FileNode *filenode_load(char *path)
 		pos = sha256;
 		for (i = 0; i < sizeof(fn->info->sha256); ++i, pos += 2)
 			sscanf(pos, "%2hhx", &fn->info->sha256[i]);
+		
+		/* file_exists_shared will check later if they actually exist */
+		fn->exists = FALSE;
 		
 		fn->file = strdup(filename);
 		if(fn->file == NULL)

@@ -22,6 +22,7 @@ typedef struct FileNode {
 	FileHash *info;
 	time_t mtime;
 	off_t size;
+	uint8_t exists;
 } FileNode;
 
 void perrlog(const char *msg);

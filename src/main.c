@@ -131,7 +131,7 @@ int main(void)
 	
 	int rc = filenode_load_fromdir(CACHEDIR_PATH);
 	yinfo("Loaded %i files from cache", rc);
-	//file_recheck_callback(SIGUSR1);
+	file_recheck_callback(SIGUSR1); /* checks if loaded files actually exist */
 	
 	while(main_loop_running)
 	{
