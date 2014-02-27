@@ -2,13 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
-#include "ylog.h"
-
-void perrlog(const char *msg)
-{
-	yerr("%s: %s", msg, strerror(errno));
-}
+#include "misc.h"
 
 // XXX: FIX
 /* return value needs to be freed */

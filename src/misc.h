@@ -1,6 +1,6 @@
 #ifndef MISC_H
 #define MISC_H
-
+#include <errno.h>
 #include "ylog.h"
 
 #ifndef TRUE
@@ -10,6 +10,8 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
+
+#define perrlog(msg) yerr("%s: %s", msg, strerror(errno))
 
 typedef struct FileHash {
 	uint32_t crc32;
@@ -25,7 +27,6 @@ typedef struct FileNode {
 	uint8_t exists;
 } FileNode;
 
-void perrlog(const char *msg);
 unsigned char *hex_string_to_bin(char hex_string[]);
 char *human_readable_id(uint8_t *address, uint16_t length);
 char *gnu_basename(char *path);
