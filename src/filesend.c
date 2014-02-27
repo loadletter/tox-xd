@@ -81,7 +81,7 @@ static FILE *file_list_create(void)
 	FileNode **fnode = file_get_shared();
 	int fnode_len = file_get_shared_len();
 	char hu_size[8]; 
-	int i, n = 0;
+	int i, n = 0, packs_avail = 0;
 	
 	FILE *fp = tmpfile();
 	if(fp == NULL)
@@ -94,12 +94,19 @@ static FILE *file_list_create(void)
 		if(file_senders[i].active)
 			n++;
 	
-	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", fnode_len, FSEND_MAX_FILES - n, FSEND_MAX_FILES);
+	for(i = 0; i < fnode_len; i++)
+		if(fnode[i]->exists)
+			packs_avail++;
+	
+	fprintf(fp, "** %i Packs ** %i/%i Slots open **\n", packs_avail, FSEND_MAX_FILES - n, FSEND_MAX_FILES);
 	fprintf(fp, "** #pack_num  [size]  filename **\n");
 	for(i = 0; i < fnode_len; i++)
 	{
-		human_readable_filesize(hu_size, fnode[i]->size);
-		fprintf(fp, "#%-10i [%s] %s\n", i, hu_size, gnu_basename(fnode[i]->file));
+		if(fnode[i]->exists)
+		{
+			human_readable_filesize(hu_size, fnode[i]->size);
+			fprintf(fp, "#%-10i [%s] %s\n", i, hu_size, gnu_basename(fnode[i]->file));
+		}
 	}
 	
 	return fp;
