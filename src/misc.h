@@ -24,7 +24,7 @@ typedef struct FileNode {
 	FileHash *info;
 	time_t mtime;
 	off_t size;
-	uint8_t exists;
+	int exists;
 } FileNode;
 
 unsigned char *hex_string_to_bin(char hex_string[]);
