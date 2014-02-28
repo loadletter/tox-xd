@@ -216,3 +216,52 @@ int toxdata_load(Tox *m, char *path)
 	return 0;
 }
 
+/*
+ * Get a configuration value from a key=value configuration file
+ * Returns pointer to allocated memory if success
+ * Return NULL if keyname is not found or on error
+ */
+char *get_conf_str(FILE *fp, const char *keyname)
+{
+	if (fp == NULL)
+	{
+		perrlog("fopen");
+		return NULL;
+	}
+	
+	char line[4096];
+	while (fgets(line, sizeof(line), fp))
+	{
+		char *key = strtok(line, "=");
+		char *value = strtok(NULL, " ");
+		/* invalid line */
+		if (key == NULL || value == NULL)
+			continue;
+		/* not what we are looking for or commented out */
+		if (strcmp(keyname, key) != 0 || strchr(key, '#') != NULL)
+			continue;
+		
+		return strdup(value);
+	}
+	
+	return NULL;
+}
+
+/*
+ * Get a positive number value from a key=value configuration file
+ * Returns integer >= 0 if success
+ * Return -1 if keyname is not found or on error
+ */
+int get_conf_int(FILE *fp, const char *keyname)
+{
+	char *strnum = get_conf_str(fp, keyname);
+	if (strnum == NULL)
+		return -1;
+	
+	int number = atoi(strnum);
+	if (number == 0 && strcmp(strnum, "0") != 0)
+		number = -1;
+	
+	free(strnum);
+	return number;
+}
