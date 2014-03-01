@@ -231,17 +231,13 @@ char *get_conf_str(FILE *fp, const char *keyname)
 	while (fgets(line, sizeof(line), fp))
 	{
 		char *key = strtok(line, "=");
-		char *value = strtok(NULL, " ");
+		char *value = strtok(NULL, "\n");
 		/* invalid line */
 		if (key == NULL || value == NULL)
 			continue;
 		/* not what we are looking for or commented out */
 		if (strcmp(keyname, key) != 0 || strchr(key, '#') != NULL)
 			continue;
-		/* remove newline */
-		char *newline = strrchr(value, '\n');	
-		if(newline != NULL)
-			*newline = '\0';
 		
 		return strdup(value);
 	}
