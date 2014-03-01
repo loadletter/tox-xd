@@ -132,10 +132,10 @@ static void load_conf(const char *conf_path)
 	}
 	
 	ydebug("Configuration loaded:");
-	ydebug("cachedir: %s", cachedir_path);
-	ydebug("shareddir: %s", shareddir_path);
-	ydebug("dhtserversfile: %s", dhtservers_file);
-	ydebug("toxdatafile: %s", toxdata_file);
+	ydebug("cachedir=\"%s\"", cachedir_path);
+	ydebug("shareddir=\"%s\"", shareddir_path);
+	ydebug("dhtserversfile=\"%s\"", dhtservers_file);
+	ydebug("toxdatafile=\"%s\"", toxdata_file);
 }
 
 int main(int argc, char *argv[])
@@ -148,7 +148,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	load_conf(argv[1]);
-	return EXIT_SUCCESS;
 	
 	struct sigaction sigu1a;
 	memset(&sigu1a, 0, sizeof(sigu1a));
@@ -167,7 +166,8 @@ int main(int argc, char *argv[])
 	
 	int rc = filenode_load_fromdir(cachedir_path);
 	yinfo("Loaded %i files from cache", rc);
-	file_recheck_callback(SIGUSR1); /* checks if loaded files actually exist */
+	/* checks if loaded files actually exist */
+	file_recheck_callback(SIGUSR1); 
 	
 	while(main_loop_running)
 	{
