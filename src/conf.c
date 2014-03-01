@@ -224,10 +224,8 @@ int toxdata_load(Tox *m, char *path)
 char *get_conf_str(FILE *fp, const char *keyname)
 {
 	if (fp == NULL)
-	{
-		perrlog("fopen");
 		return NULL;
-	}
+	fseek(fp, 0, SEEK_SET);
 	
 	char line[4096];
 	while (fgets(line, sizeof(line), fp))

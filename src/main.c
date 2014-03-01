@@ -3,6 +3,7 @@
 #include <tox/tox.h>
 #include <signal.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "misc.h"
 #include "fileop.h"
@@ -10,11 +11,11 @@
 #include "conf.h"
 #include "callbacks.h"
 
-#define DHTSERVERS_PATH "/tmp/DHTservers"
-#define TOXDATA_PATH "/tmp/toxdata"
-#define CACHEDIR_PATH "/tmp/test"
-
 static volatile sig_atomic_t main_loop_running = TRUE;
+static char *cachedir_path = NULL;
+static char *shareddir_path = NULL;
+static char *toxdata_file = NULL;
+static char *dhtservers_file = NULL;
 
 static void main_loop_stop(int signo)
 {
@@ -32,7 +33,7 @@ static void toxconn_do(Tox *m)
 	{
 		if (!conn_err)
 		{
-			conn_err = init_connection(m, DHTSERVERS_PATH);
+			conn_err = init_connection(m, dhtservers_file);
 			yinfo("Establishing connection...");
 				
 			if(conn_err)
@@ -109,10 +110,45 @@ static void printownid(Tox *m)
 	free(idstr);
 }
 
+static void load_conf(const char *conf_path)
+{
+	FILE *fd = fopen(conf_path, "r");
+	if(fd == NULL)
+	{
+		perrlog("fopen");
+		yerr("Could not open configuration file");
+		exit(EXIT_FAILURE);
+	}
+	
+	cachedir_path = get_conf_str(fd, "cachedir");
+	shareddir_path = get_conf_str(fd, "shareddir");
+	dhtservers_file = get_conf_str(fd, "dhtserversfile");
+	toxdata_file = get_conf_str(fd, "toxdatafile");
+	
+	if(cachedir_path == NULL || shareddir_path == NULL || dhtservers_file == NULL || toxdata_file == NULL)
+	{
+		yerr("Missing required configuration value");
+		exit(EXIT_FAILURE);
+	}
+	
+	ydebug("Configuration loaded:");
+	ydebug("cachedir: %s", cachedir_path);
+	ydebug("shareddir: %s", shareddir_path);
+	ydebug("dhtserversfile: %s", dhtservers_file);
+	ydebug("toxdatafile: %s", toxdata_file);
+}
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	ylog_set_level(YLOG_DEBUG, getenv("YLOG_LEVEL"));
+	
+	if(argc != 2)
+	{
+		yerr("Error: Usage \"%s configurtionfile\"", argv[0]);
+		return EXIT_FAILURE;
+	}
+	load_conf(argv[1]);
+	return EXIT_SUCCESS;
 	
 	struct sigaction sigu1a;
 	memset(&sigu1a, 0, sizeof(sigu1a));
@@ -126,16 +162,16 @@ int main(void)
 	sigaction(SIGTERM, &sigint_term, NULL);
 	
 	Tox *m = toxconn_init(FALSE);
-	toxdata_load(m, TOXDATA_PATH);
+	toxdata_load(m, toxdata_file);
 	printownid(m);
 	
-	int rc = filenode_load_fromdir(CACHEDIR_PATH);
+	int rc = filenode_load_fromdir(cachedir_path);
 	yinfo("Loaded %i files from cache", rc);
 	file_recheck_callback(SIGUSR1); /* checks if loaded files actually exist */
 	
 	while(main_loop_running)
 	{
-		file_do("./", CACHEDIR_PATH);
+		file_do(shareddir_path, cachedir_path);
 		toxconn_do(m);
 		file_senders_do(m);
 		usleep(5 * 1000);
@@ -144,8 +180,8 @@ int main(void)
 	ywarn("SIGINT/SIGTERM received, terminating...");
 	
 	file_transfers_close();
-	toxdata_store(m, TOXDATA_PATH);
+	toxdata_store(m, toxdata_file);
 	tox_kill(m);
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
