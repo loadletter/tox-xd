@@ -16,6 +16,7 @@ typedef struct {
     FILE *file;
     int friendnum;
     uint8_t active;
+    uint8_t accepted;
     uint8_t filenum;
     uint8_t nextpiece[FSEND_PIECE_SIZE];
     uint16_t piecelen;
@@ -34,5 +35,7 @@ enum {
 void file_transfers_close(void);
 int file_sender_new(int friendnum, FileNode **shrfiles, int packn, Tox *m);
 void file_senders_do(Tox *m);
+void file_sender_accepted(uint8_t filenum);
+void file_sender_close(int i);
 extern char packlist_filename[];
 #endif

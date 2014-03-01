@@ -31,3 +31,4 @@ hash: (speed on single core sempron: 2.2ms for 64kb block)
 
 TODO:
 - realloc return should be different than the passed variable, to prevent memory leaks if it returns null
+- implement TOX_FILECONTROL_RESUME_BROKEN

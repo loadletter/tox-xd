@@ -10,7 +10,7 @@ static uint8_t file_senders_index;
 static FileSender file_senders[FSEND_MAX_FILES];
 char packlist_filename[] = "packlist.txt";
 
-static void file_sender_close(int i)
+void file_sender_close(int i)
 {
 	fclose(file_senders[i].file);
 	memset(&file_senders[i], 0, sizeof(FileSender));
@@ -53,7 +53,11 @@ void file_senders_do(Tox *m)
 			file_sender_close(i);
 			continue;
 		}
-
+		
+		/* Allow unaccepted files to timeout */
+		if (!file_senders[i].accepted)
+			continue;
+		
 		int pieces = 0;
 
 		while (pieces++ < FSEND_MAX_PIECES)
@@ -164,6 +168,7 @@ int file_sender_new(int friendnum, FileNode **shrfiles, int packn, Tox *m)
 		{
 			file_senders[i].details = fileinfo;
 			file_senders[i].active = TRUE;
+			file_senders[i].accepted = FALSE;
 			file_senders[i].file = file_to_send;
 			file_senders[i].filenum = (uint8_t) filenum;
 			file_senders[i].friendnum = friendnum;
@@ -192,4 +197,9 @@ void file_transfers_close(void)
 		if (file_senders[i].active)
 			fclose(file_senders[i].file);
 	}
+}
+
+void file_sender_accepted(uint8_t filenum)
+{
+	file_senders[filenum].accepted = TRUE;
 }

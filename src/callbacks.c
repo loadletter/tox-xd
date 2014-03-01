@@ -251,3 +251,21 @@ void on_new_file(FileNode *fn, int packn)
 	errormsg:
 		yerr("Failed to notify new file %s on groupchat", fn->file);
 }
+
+void on_file_control(Tox *m, int num, uint8_t receive_send, uint8_t filenum,
+					uint8_t control_type, uint8_t *data, uint16_t length, void *userdata)
+{
+	if(receive_send == 1)
+	{
+		switch(control_type)
+		{
+			case TOX_FILECONTROL_ACCEPT:
+				yinfo("File transfer %d accepted by friend %d", filenum, num);
+				file_sender_accepted(filenum);
+				break;
+			case TOX_FILECONTROL_KILL:
+				yinfo("File transfer %d refused by friend %d", filenum, num);
+				file_sender_close(filenum);
+		}
+	}
+}

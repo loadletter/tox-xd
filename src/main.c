@@ -82,9 +82,9 @@ static Tox *toxconn_init(int ipv4)
 	tox_callback_group_message(m, on_groupmessage, NULL);
 	tox_callback_group_action(m, on_groupaction, NULL);
 	tox_callback_group_namelist_change(m, on_group_namelistchange, NULL);
-	tox_callback_file_send_request(m, on_file_sendrequest, NULL);
+	tox_callback_file_send_request(m, on_file_sendrequest, NULL);*/
 	tox_callback_file_control(m, on_file_control, NULL);
-	tox_callback_file_data(m, on_file_data, NULL);*/
+	/*tox_callback_file_data(m, on_file_data, NULL);*/
 
 	tox_set_name(m, (uint8_t *) "Cool bot", sizeof("Cool bot"));
 	
