@@ -71,20 +71,10 @@ static Tox *toxconn_init(int ipv4)
 		return NULL;
 
 	/* Callbacks */
-	/*tox_callback_connection_status(m, on_connectionchange, NULL);*/
 	tox_callback_friend_request(m, on_request, m);
 	tox_callback_friend_message(m, on_message, NULL);
-	/*tox_callback_name_change(m, on_nickchange, NULL);
-	tox_callback_user_status(m, on_statuschange, NULL);
-	tox_callback_status_message(m, on_statusmessagechange, NULL);
-	tox_callback_friend_action(m, on_action, NULL);
-	tox_callback_group_invite(m, on_groupinvite, NULL);
-	tox_callback_group_message(m, on_groupmessage, NULL);
-	tox_callback_group_action(m, on_groupaction, NULL);
-	tox_callback_group_namelist_change(m, on_group_namelistchange, NULL);
-	tox_callback_file_send_request(m, on_file_sendrequest, NULL);*/
+	/* tox_callback_group_message(m, on_groupmessage, NULL); */
 	tox_callback_file_control(m, on_file_control, NULL);
-	/*tox_callback_file_data(m, on_file_data, NULL);*/
 
 	tox_set_name(m, (uint8_t *) "Cool bot", sizeof("Cool bot"));
 	
