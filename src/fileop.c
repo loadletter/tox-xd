@@ -28,7 +28,7 @@ static void (*file_new_c)(FileNode *, int) = NULL;
 /* prototypes */
 static int filenode_dump(FileNode *fnode, char *path);
 
-int file_checksumcalc_noblock(FileHash *dest, char *filename)
+static int file_checksumcalc_noblock(FileHash *dest, char *filename)
 {
 	static FILE *f = NULL;
 	uint i;
@@ -63,7 +63,7 @@ int file_checksumcalc_noblock(FileHash *dest, char *filename)
 		MD5_Final(dest->md5, &md5_ctx);
 		sha256_finish(&sha_ctx, dest->sha256);
 		if(fclose(f) != 0)
-			perrlog("fclose"); /* TODO: maybe do something more safe? */
+			perrlog("fclose");
 		f = NULL;
 		rc = 0;
 	}
@@ -72,42 +72,6 @@ int file_checksumcalc_noblock(FileHash *dest, char *filename)
 	 * rc == 0: complete
 	 * rc < 0: error*/
 	return(rc);
-}
-
-int file_checksumcalc(FileHash *dest, char *filename)
-{
-	FILE *f;
-	uint i = 0;
-	uint8_t buf[HASHING_BUFSIZE];
-	uint32_t crc32;
-	MD5_CTX md5_ctx;
-	sha256_context sha_ctx;
-
-	if(!(f = fopen(filename, "rb")))
-	{
-		perrlog("fopen");
-		return(-1);
-	}
-	
-	crc32 = 0;
-	MD5_Init(&md5_ctx);
-	sha256_starts(&sha_ctx);
-	
-	while((i = fread(buf, 1, sizeof(buf), f)) > 0)
-	{
-		crc32 = crc32_compute(crc32, buf, i);
-		MD5_Update(&md5_ctx, buf, i);
-		sha256_update(&sha_ctx, buf, i);
-	}
-	
-	dest->crc32 = crc32;
-	MD5_Final(dest->md5, &md5_ctx);
-	sha256_finish(&sha_ctx, dest->sha256);
-	
-	if(fclose(f) != 0)
-		perrlog("fclose");
-	
-	return(0);
 }
 
 /* Run on every file of the shared dir, if a file is not alredy in the shared array
